@@ -278,7 +278,7 @@ for t_value in np.arange(num_loops)[0:1]: ##remove [0:1] #main workhorse loop
     print('t_value:', t_value)
     
     #EIT195
-    '''
+    #'''
     
     EIT195_results = Fido.search(avso.Time(time_range,date_time_start),avso.Source('SOHO'),avso.Instrument('EIT'),avso.Provider('SDAC'),avso.Wavelength(195 * avso.u.Angstrom,195 * avso.u.Angstrom))
     print(EIT195_results)
@@ -522,7 +522,7 @@ for t_value in np.arange(num_loops)[0:1]: ##remove [0:1] #main workhorse loop
     print('reduced_EIT195:', len(reduced_EIT195)) #reduced_EIT195
     print('holes_EIT195:', holes_EIT195, len(holes_EIT195))
     
-    '''
+    #'''
     #EIT195
     
     
@@ -534,7 +534,7 @@ for t_value in np.arange(num_loops)[0:1]: ##remove [0:1] #main workhorse loop
     #print(time_range)
     
     #MDI
-    '''
+    #'''
     MDI_results = Fido.search(avso.Time(time_range,date_time_start),avso.Source('SOHO'),avso.Instrument('MDI'),avso.Provider('SDAC'),avso.Physobs('LOS_MAGNETIC_FIELD'))
     print(MDI_results)
 	
@@ -771,11 +771,11 @@ for t_value in np.arange(num_loops)[0:1]: ##remove [0:1] #main workhorse loop
     print('reduced_MDI:', len(reduced_MDI)) #reduced_MDI
     print('holes_MDI:', holes_MDI, len(holes_MDI))
     
-    '''
+    #'''
     #MDI
     
     #LASCO_C2
-    '''
+    #'''
     date_time_pre_LASCO_C2 = '20000501-0000' #month in the middle
     date_time_start = parser.parse(date_time_pre_LASCO_C2)
     time_range = TimeRange(date_time_start, timedelta(days=14))
@@ -1020,10 +1020,10 @@ for t_value in np.arange(num_loops)[0:1]: ##remove [0:1] #main workhorse loop
     print('holes_LASCO_C2:', holes_LASCO_C2, len(holes_LASCO_C2))
     
     #LASCO_C2
-    ''' 
+    #''' 
     
     #LASCO_C3
-    '''
+    #'''
     date_time_pre_LASCO_C3 = '20040724-0000' #month in the middle
     date_time_start = parser.parse(date_time_pre_LASCO_C3)
     time_range = TimeRange(date_time_start, timedelta(days=14))
@@ -1267,10 +1267,10 @@ for t_value in np.arange(num_loops)[0:1]: ##remove [0:1] #main workhorse loop
     print('holes_LASCO_C3:', holes_LASCO_C3, len(holes_LASCO_C3))
     
     #LASCO_C3
-    '''   
+    #'''   
     
     #EIT171
-    '''
+    #'''
     
     EIT171_results = Fido.search(avso.Time(time_range,date_time_start),avso.Source('SOHO'),avso.Instrument('EIT'),avso.Provider('SDAC'),avso.Wavelength(171 * avso.u.Angstrom,171 * avso.u.Angstrom))
     print(EIT171_results)
@@ -1511,12 +1511,12 @@ for t_value in np.arange(num_loops)[0:1]: ##remove [0:1] #main workhorse loop
     print('holes_EIT171:', holes_EIT171, len(holes_EIT171))
         
     #EIT171
-    '''
+    #'''
     
     
     
     #EIT304
-    '''
+    #'''
     EIT304_results = Fido.search(avso.Time(time_range,date_time_start),avso.Source('SOHO'),avso.Instrument('EIT'),avso.Provider('SDAC'),avso.Wavelength(304 * avso.u.Angstrom,304 * avso.u.Angstrom))
     print(EIT304_results)
 
@@ -1756,7 +1756,7 @@ for t_value in np.arange(num_loops)[0:1]: ##remove [0:1] #main workhorse loop
     print('holes_EIT304:', holes_EIT304, len(holes_EIT304))    
     
     #EIT304
-    '''
+    #'''
     
     
     
