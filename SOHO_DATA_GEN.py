@@ -254,7 +254,7 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
     holes_product_list = []
     unreadable_file_ids_product_list = []
     
-    if data_product is not None and axis1_product == axis2_product:
+    if (data_product is not None) and (axis1_product == axis2_product):
 
         if not holes(query_result[0]): #so if not True; so no holes; can use image
             reduced_product_data = data_reducer(data_product,flag,target_dimension,axis1_product)
@@ -315,7 +315,7 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
                     continue #continue the for loop
 
 
-    elif data_product is None:
+    elif (data_product is None) or (axis1_product != axis2_product):
         unreadable_file_ids_product_list.append(product_results.get_response(0)[int(indiv_ind)]['fileid'])
         bad_time_val = product_results.get_response(0)[int(indiv_ind)]['time']['start']
         all_2hr_sieved_times_product_times.remove(bad_time_val)
