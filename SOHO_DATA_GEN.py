@@ -299,7 +299,7 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
                 query_result_next = product_retriever(base,product_results,index,url_prefix,home_dir)
                 axis1_next_good,axis2_next_good,data_next_good = readfits(query_result_next[0])
 
-                if data_next_good is not None and axis1_next_good == axis2_next_good:
+                if (data_next_good is not None) and (axis1_next_good == axis2_next_good):
 
                     if not holes(query_result_next[0]): #so if not True; so no holes; can use image
                         reduced_product_data = data_reducer(data_next_good,flag,target_dimension,axis1_next_good)
@@ -318,7 +318,7 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
                         os.remove(query_result_next[0])
                         continue 
 
-                elif data_next_good is None:
+                elif (data_next_good is None) or (axis1_next_good != axis2_next_good):
                     unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
                     os.remove(query_result_next[0])
                     continue #continue the for loop
