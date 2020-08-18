@@ -229,10 +229,11 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
         axdim1,axdim2,data_content = readfits(f'{filepath}{elem}')
         data_content_list.append(data_content)
 
-    data_content_stack = np.stack(data_content_list)
-    data_cube = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{flag}_{target_dimension}.h5', 'w')
-    data_cube.create_dataset(f'{base}_{target_dimension}', data=data_content_stack, compression="gzip")
-    data_cube.close()
+    if data_content_list:
+        data_content_stack = np.stack(data_content_list)
+        data_cube = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{flag}_{target_dimension}.h5', 'w')
+        data_cube.create_dataset(f'{base}_{target_dimension}', data=data_content_stack, compression="gzip")
+        data_cube.close()
                             
     return data_cube
 
