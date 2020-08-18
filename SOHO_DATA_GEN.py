@@ -161,10 +161,12 @@ def holes(filename):
             return False #can use this image
     
     elif any([x in filename for x in matches]):
-        rad = float(x_coord)
-        indices = np.where(rsquared.flatten() < rad**2)[0]
-        zeros_ind = np.where(data.flatten()[indices] == 0.)[0]
-        nan_ind = np.where(data.flatten()[indices] != data.flatten()[indices])[0]
+        rad1 = float(x_coord)
+        rad2 = 0.6*float(x_coord)
+        indices_rad1 = np.where(rsquared.flatten() < rad1**2)[0]
+        indices_rad2 = np.where(rsquared.flatten() < rad2**2)[0]
+        zeros_ind = np.where(data.flatten()[indices_rad1] == 0.)[0]
+        nan_ind = np.where(data.flatten()[indices_rad2] != data.flatten()[indices_rad2])[0]
         zeros_nan_ind_len = len(list(zeros_ind) + list(nan_ind))
         
         if zeros_nan_ind_len > 100:
@@ -231,9 +233,12 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
 
     if data_content_list:
         data_content_stack = np.stack(data_content_list)
-        data_cube = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{flag}_{target_dimension}.h5', 'w')
-        data_cube.create_dataset(f'{base}_{target_dimension}', data=data_content_stack, compression="gzip")
-        data_cube.close()
+    else:
+        data_content_stack = np.array(data_content_list)
+                  
+    data_cube = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{flag}_{target_dimension}.h5', 'w')
+    data_cube.create_dataset(f'{base}_{target_dimension}', data=data_content_stack, compression="gzip")
+    data_cube.close()
                             
     return data_cube
 
