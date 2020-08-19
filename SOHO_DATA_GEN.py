@@ -387,7 +387,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
     date_time_start= parser.parse(date_time_pre_start)
     print('date_time_start:', date_time_start)
 
-    date_time_pre_end = date_finish + '-0000'
+    date_time_pre_end = date_finish + '-2359'
     date_time_end = parser.parse(date_time_pre_end)
     print('date_time_end:', date_time_end)
 
@@ -441,6 +441,8 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
             if product_results_number != 0:
                 ind = index_of_sizes(base,product_results)
                 all_size_sieved_times, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, fetch_indices_product = fetch_indices(base,ind,product_results,time_window,look_ahead)
+                if parser.parse(all_2hr_sieved_times_product_times[-1]) > date_time_end:
+                    break                 
                 for item in fetch_indices_product:
                     query_result = product_retriever(base,product_results,item,url_prefix,home_dir)
                     axis1_product,axis2_product,data_product = readfits(query_result[0])
