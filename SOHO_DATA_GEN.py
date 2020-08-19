@@ -415,11 +415,11 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
     total_sec = timedelta(days = time_increment).total_seconds()
     print('total_sec:', total_sec)
 
-    num_loops = np.ceil(diff_start_finish_total_sec/total_sec) #num_loops would be equal to 94 for 19960101-0000' - '20110501-0000' 
+    num_loops = np.ceil(diff_start_finish_total_sec/total_sec) + 1 #num_loops would be equal to 94 + 1 for 19960101-0000' - '20110501-0000'; discete number of loops so go over rather than under
     print('num_loops:', num_loops)
-    if num_loops != 1:
-        num_loops += 1
-        print('num_loops revised:', num_loops)
+    #if num_loops != 1:
+    #    num_loops += 1
+    #    print('num_loops revised:', num_loops)
 
     for base in ['EIT195', 'MDI_96m','LASCO_C2','LASCO_C3','EIT171','EIT304','EIT284']: #[1:2] can place range to run a subset of the products here
         holes_list = []
