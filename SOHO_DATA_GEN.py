@@ -235,7 +235,7 @@ def fetch_indices(base,ind,product_results,time_window,look_ahead):
 
     all_2hr_sieved_times_product_times = list(np.unique(all_2hr_sieved_times)) #np.unique() does np.array() and np.sort()
 
-    all_2hr_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times) == item)[0] for item in all_2hr_sieved_times_product_times]
+    all_2hr_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times) == item)[0][0] for item in all_2hr_sieved_times_product_times]
     
     if all_2hr_sieved_times_product_times_inds_list_pre:
         all_2hr_sieved_times_product_times_inds_list = list(np.hstack(all_2hr_sieved_times_product_times_inds_list_pre))
