@@ -146,14 +146,14 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
     data_content_list = []
     for elem in data_files:
         axdim1,axdim2,data_content = readfits(f'{filepath}{elem}')
-        if axdim1 == axdim2:
+        if (axdim1 == axdim2) and ('SOHO' in elem):
             data_content_list.append(data_content)
         data_content_list.append(data_content)
 
     if data_content_list:
         data_content_stack = np.stack(data_content_list)
     else:
-        data_content_stack = np.array(data_content_list)
+        data_content_stack = []
                   
     data_cube = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{flag}_{target_dimension}.h5', 'w')
     data_cube.create_dataset(f'{base}_{target_dimension}', data=data_content_stack, compression="gzip")
