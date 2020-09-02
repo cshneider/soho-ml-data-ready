@@ -434,15 +434,16 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
         #print('time_range:', time_range)
 
         for t_value in np.arange(num_loops): #main workhorse loop
-            print('t_value:', t_value)    
-        
+            print('t_value:', t_value)
+                
+            if time_range.end > date_time_end:
+                time_range = TimeRange(time_range.start, date_time_end)  
+                       
             product_results = product_search(base,time_range,date_time_start)
             product_results_number = product_results.file_num
             if product_results_number != 0:
                 ind = index_of_sizes(base,product_results)
                 all_size_sieved_times, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, fetch_indices_product = fetch_indices(base,ind,product_results,time_window,look_ahead)
-                if parser.parse(all_2hr_sieved_times_product_times[-1]) > date_time_end:
-                    break                 
                 for item in fetch_indices_product:
                     query_result = product_retriever(base,product_results,item,url_prefix,home_dir)
                     axis1_product,axis2_product,data_product = readfits(query_result[0])
