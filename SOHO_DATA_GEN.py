@@ -212,30 +212,34 @@ def index_of_sizes(base,product_results):
     return ind
    
 
-def fetch_indices(base,ind,product_results,time_window,look_ahead):
+def fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time):
     
     all_size_sieved_times = [] #local list to populate at each loop
     all_2hr_sieved_times = [] #local list to populate at each loop
 
     for value in ind:
         all_size_sieved_times.append(product_results.get_response(0)[int(value)]['time']['start'])
-    all_size_sieved_times_copy = all_size_sieved_times.copy()
+    all_size_sieved_times_aug = prev_time + all_size_sieved_times #prev_time = [] for the very first loop and [last best time from previous loop] for subsequent loops.
 
-    for i,time_value in enumerate(all_size_sieved_times_copy):
+    for i,time_value in enumerate(all_size_sieved_times_aug):
         local_time_range = TimeRange(str(time_value),timedelta(hours=time_window))
 
         local_list = []
-        for k,time_val in enumerate(all_size_sieved_times_copy[i:i+look_ahead]):
+        for k,time_val in enumerate(all_size_sieved_times_aug[i:i+look_ahead]):
             if time_val in local_time_range:
                 local_list.append(time_val)
         if local_list:
             for entry in local_list[1:]:
-                all_size_sieved_times_copy.remove(entry)
+                all_size_sieved_times_aug.remove(entry)
             all_2hr_sieved_times.append(local_list[0])
 
     all_2hr_sieved_times_product_times = list(np.unique(all_2hr_sieved_times)) #np.unique() does np.array() and np.sort()
 
-    all_2hr_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times) == item)[0][0] for item in all_2hr_sieved_times_product_times]
+    if not prev_time: #so if no prev_time (i.e., prev_time = [] at the start of the first loop)    
+        all_2hr_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times) == item)[0][0] for item in all_2hr_sieved_times_product_times]
+    elif prev_time:
+        all_2hr_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times) == item)[0][0] for item in all_2hr_sieved_times_product_times[1:]] 
+        #so here skip the first entry added in from the previous loop given by the expression "all_size_sieved_times_aug = prev_time + all_size_sieved_times" above    
     
     if all_2hr_sieved_times_product_times_inds_list_pre:
         all_2hr_sieved_times_product_times_inds_list = list(np.hstack(all_2hr_sieved_times_product_times_inds_list_pre))
@@ -430,8 +434,10 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
         time_range = TimeRange(date_time_start, timedelta(days = time_increment)) #time_range re-initialized here
         #print('time_range:', time_range)
 
+        prev_time = []
         for t_value in np.arange(num_loops): #main workhorse loop
             print('t_value:', t_value)
+            print('prev_time:', prev_time)
                 
             if time_range.end > date_time_end:
                 time_range = TimeRange(time_range.start, date_time_end)  
@@ -440,7 +446,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
             product_results_number = product_results.file_num
             if product_results_number != 0:
                 ind = index_of_sizes(base,product_results)
-                all_size_sieved_times, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, fetch_indices_product = fetch_indices(base,ind,product_results,time_window,look_ahead)
+                all_size_sieved_times, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, fetch_indices_product = fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time)
                 for item in fetch_indices_product:
                     query_result = product_retriever(base,product_results,item,url_prefix,home_dir)
                     axis1_product,axis2_product,data_product = readfits(query_result[0])
@@ -452,11 +458,17 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
                     if unreadable_file_ids_product_list_local:
                         unreadable_file_ids_product_list_global.append(unreadable_file_ids_product_list_local)
             
-                all_2hr_sieved_times_sorted = np.sort(all_2hr_sieved_times_product_times_modified)
-
+                if not prev_time:
+                    all_2hr_sieved_times_sorted = np.sort(all_2hr_sieved_times_product_times_modified)
+                elif prev_time:                    
+                    all_2hr_sieved_times_sorted = np.sort(all_2hr_sieved_times_product_times_modified[1:])
+                                
                 print(f'{base} all_size_sieved_times:', all_size_sieved_times, len(all_size_sieved_times))
                 print(f'{base} list(all_2hr_sieved_times_sorted):', list(all_2hr_sieved_times_sorted), len(all_2hr_sieved_times_sorted))
-            
+
+                prev_time = [] #reset to empty list
+                prev_time.append(all_2hr_sieved_times_sorted[-1]) #append the last good time entry from the previous loop
+                            
                 csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_2hr_sieved_times_sorted)
 
             time_range.next() #Sunpy iterator to go for the next 2 months #also have time_range.previous() to go back. #### UNCOMMENT!    
