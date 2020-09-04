@@ -11,6 +11,7 @@ from skimage.measure import block_reduce
 
 from datetime import datetime, date, time, timedelta
 from dateutil import parser
+import time
 
 from sunpy.net import Fido
 from sunpy.net.vso import attrs as avso
@@ -254,8 +255,18 @@ def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir):
     fileid = product_results.get_response(0)[int(indiv_ind)]['fileid']
     item_wget =  url_prefix + fileid
     cmd = 'wget' + ' ' + item_wget + ' ' + '-P' + ' ' + f'{home_dir}{base}' #OBTAIN TIMEOUT ISSUE WITH FIDO FETCH! SEEMS THAT WITH WGET CAN CIRCUMNAVIGATE IT.
-    args = shlex.split(cmd)
-    subprocess.check_call(args)
+    args = shlex.split(cmd)    
+    wget_output = str(subprocess.check_output(args)).strip('b')
+    
+    while wget_output != "''":
+        print(f'Encountered wget error with exit status {wget_output} for {item_wget}')
+        cmd = 'wget' + ' ' + '--retry-connrefused' + ' ' + '--waitretry=1' + ' ' + '--read-timeout=20' + ' ' + '--timeout=15' + ' ' + '-t' + ' ' + '0' + ' ' + '--continue' + ' ' + item_wget + ' ' + '-P' + ' ' + f'{home_dir}{base}'    
+        args = shlex.split(cmd)
+        wget_output = str(subprocess.check_output(args)).strip('b')
+        if wget_output == "''":
+            break
+        time.sleep(1) 
+    
     downloaded_fileid = fileid.split('/')[-1]
     query_result = [f'{home_dir}{base}/{downloaded_fileid}']
     
@@ -384,7 +395,16 @@ def csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_2
         writer = csv.writer(f, delimiter='\n')
         writer.writerow(all_2hr_sieved_times_sorted)
 
-
+def csv_time_uniq_writer(base,home_dir,date_start,date_finish,flag,target_dimension):
+    with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}.csv', 'r') as ff:
+        csv_reader = csv.reader(ff, delimiter='\n')
+        csv_data = [line for line in csv_reader]
+    csv_uniq_times = list(np.unique(csv_data))
+    with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}_new.csv', 'w') as g:
+        writer_new = csv.writer(g, delimiter='\n')
+        writer_new.writerow(csv_uniq_times)
+        
+        
 def main(date_start, date_finish, target_dimension, time_increment, time_window, flag, home_dir):
     
     date_time_pre_start = date_start + '-0000'
@@ -478,7 +498,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
         print(f'{base} unreadable_file_ids_product_list_global:', unreadable_file_ids_product_list_global)
 
         data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension)    
-    
+        csv_time_uniq_writer(base,home_dir,date_start,date_finish,flag,target_dimension)        
     
 
     
