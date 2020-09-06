@@ -479,9 +479,9 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
                         unreadable_file_ids_product_list_global.append(unreadable_file_ids_product_list_local)
             
                 if not prev_time:
-                    all_2hr_sieved_times_sorted = np.sort(all_2hr_sieved_times_product_times_modified)
+                    all_2hr_sieved_times_sorted = np.unique(all_2hr_sieved_times_product_times_modified)
                 elif prev_time:                    
-                    all_2hr_sieved_times_sorted = np.sort(all_2hr_sieved_times_product_times_modified[1:])
+                    all_2hr_sieved_times_sorted = np.unique(all_2hr_sieved_times_product_times_modified[1:])
                                 
                 print(f'{base} all_size_sieved_times:', all_size_sieved_times, len(all_size_sieved_times))
                 print(f'{base} list(all_2hr_sieved_times_sorted):', list(all_2hr_sieved_times_sorted), len(all_2hr_sieved_times_sorted))
