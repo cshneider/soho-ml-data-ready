@@ -395,16 +395,7 @@ def csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_2
         writer = csv.writer(f, delimiter='\n')
         writer.writerow(all_2hr_sieved_times_sorted)
 
-def csv_time_uniq_writer(base,home_dir,date_start,date_finish,flag,target_dimension):
-    with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}.csv', 'r') as ff:
-        csv_reader = csv.reader(ff, delimiter='\n')
-        csv_data = [line for line in csv_reader]
-    csv_uniq_times = list(np.unique(csv_data))
-    with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}_new.csv', 'w') as g:
-        writer_new = csv.writer(g, delimiter='\n')
-        writer_new.writerow(csv_uniq_times)
-        
-        
+
 def main(date_start, date_finish, target_dimension, time_increment, time_window, flag, home_dir):
     
     date_time_pre_start = date_start + '-0000'
@@ -487,7 +478,8 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
                 print(f'{base} list(all_2hr_sieved_times_sorted):', list(all_2hr_sieved_times_sorted), len(all_2hr_sieved_times_sorted))
 
                 prev_time = [] #reset to empty list
-                prev_time.append(all_2hr_sieved_times_sorted[-1]) #append the last good time entry from the previous loop
+                if all_2hr_sieved_times_sorted:
+                    prev_time.append(all_2hr_sieved_times_sorted[-1]) #append the last good time entry from the previous loop
                             
                 csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_2hr_sieved_times_sorted)
 
@@ -498,8 +490,6 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
         print(f'{base} unreadable_file_ids_product_list_global:', unreadable_file_ids_product_list_global)
 
         data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension)    
-        csv_time_uniq_writer(base,home_dir,date_start,date_finish,flag,target_dimension)        
-    
 
     
 if __name__ == '__main__':
