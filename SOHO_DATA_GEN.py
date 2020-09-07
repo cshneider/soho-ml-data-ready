@@ -478,7 +478,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
                 print(f'{base} list(all_2hr_sieved_times_sorted):', list(all_2hr_sieved_times_sorted), len(all_2hr_sieved_times_sorted))
 
                 prev_time = [] #reset to empty list
-                if all_2hr_sieved_times_sorted:
+                if len(all_2hr_sieved_times_sorted) != 0:
                     prev_time.append(all_2hr_sieved_times_sorted[-1]) #append the last good time entry from the previous loop
                             
                 csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_2hr_sieved_times_sorted)
