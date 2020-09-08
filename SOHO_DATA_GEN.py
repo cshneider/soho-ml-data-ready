@@ -67,11 +67,11 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
             product_results_number = product_results.file_num
             if product_results_number != 0:
                 ind = index_of_sizes(base,product_results)
-                all_size_sieved_times, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, fetch_indices_product = fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time)
+                all_size_sieved_times_pre, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, fetch_indices_product = fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time)
                 for item in fetch_indices_product:
                     query_result = product_retriever(base,product_results,item,url_prefix,home_dir)
                     axis1_product,axis2_product,data_product = readfits(query_result[0])
-                    all_2hr_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list_local = product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, query_result, ind, item, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir)
+                    all_2hr_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list_local = product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times_pre, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, query_result, ind, item, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir)
                 
                     if holes_product_list:
                         holes_list.append(holes_product_list)
@@ -84,7 +84,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
                 elif prev_time:                    
                     all_2hr_sieved_times_sorted = np.unique(all_2hr_sieved_times_product_times_modified[1:])
                                 
-                print(f'{base} all_size_sieved_times:', all_size_sieved_times, len(all_size_sieved_times))
+                print(f'{base} np.unique(all_size_sieved_times_pre):', np.unique(all_size_sieved_times_pre), len(np.unique(all_size_sieved_times_pre)))
                 print(f'{base} list(all_2hr_sieved_times_sorted):', list(all_2hr_sieved_times_sorted), len(all_2hr_sieved_times_sorted))
 
                 prev_time = [] #reset to empty list

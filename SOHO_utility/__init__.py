@@ -214,11 +214,12 @@ def index_of_sizes(base,product_results):
 
 def fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time):
     
-    all_size_sieved_times = [] #local list to populate at each loop
+    all_size_sieved_times_pre = [] #local list to populate at each loop
     all_2hr_sieved_times = [] #local list to populate at each loop
 
     for value in ind:
-        all_size_sieved_times.append(product_results.get_response(0)[int(value)]['time']['start'])
+        all_size_sieved_times_pre.append(product_results.get_response(0)[int(value)]['time']['start'])
+    all_size_sieved_times = list(np.unique(all_size_sieved_times_pre))
     all_size_sieved_times_aug = prev_time + all_size_sieved_times #prev_time = [] for the very first loop and [last best time from previous loop] for subsequent loops.
 
     for i,time_value in enumerate(all_size_sieved_times_aug):
@@ -236,17 +237,18 @@ def fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time):
     all_2hr_sieved_times_product_times = list(np.unique(all_2hr_sieved_times)) #np.unique() does np.array() and np.sort()
 
     if not prev_time: #so if no prev_time (i.e., prev_time = [] at the start of the first loop)    
-        all_2hr_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times) == item)[0][0] for item in all_2hr_sieved_times_product_times]
+        all_2hr_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times_pre) == item)[0][0] for item in all_2hr_sieved_times_product_times]
     elif prev_time:
-        all_2hr_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times) == item)[0][0] for item in all_2hr_sieved_times_product_times[1:]] 
+        all_2hr_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times_pre) == item)[0][0] for item in all_2hr_sieved_times_product_times[1:]] 
         #so here skip the first entry added in from the previous loop given by the expression "all_size_sieved_times_aug = prev_time + all_size_sieved_times" above    
     
     if all_2hr_sieved_times_product_times_inds_list_pre:
         all_2hr_sieved_times_product_times_inds_list = list(np.hstack(all_2hr_sieved_times_product_times_inds_list_pre))
 
-    fetch_indices_product = ind[all_2hr_sieved_times_product_times_inds_list] #THESE ARE THE INDICES TO FETCH!
+    new_inds = [np.where(np.array(all_size_sieved_times_pre) == entry)[0][0] for entry in all_2hr_sieved_times_product_times]
+    fetch_indices_product = ind[new_inds]
     
-    return all_size_sieved_times, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, fetch_indices_product
+    return all_size_sieved_times_pre, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, fetch_indices_product
     
 
 def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir):
@@ -272,7 +274,7 @@ def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir):
     return query_result
 
 
-def product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, query_result, ind, indiv_ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir):
+def product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times_pre, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, query_result, ind, indiv_ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir):
 
     holes_product_list = []
     unreadable_file_ids_product_list = []
@@ -293,19 +295,19 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
             
             all_2hr_sieved_times_product_times.remove(hole_time_val)
             
-            ind_hole_time_val = np.where(np.array(all_size_sieved_times) == hole_time_val)[0][0]
+            ind_hole_time_val = np.where(np.array(all_size_sieved_times_pre) == hole_time_val)[0][0]
             
             all_2hr_sieved_times_product_times_inds_list.remove(ind_hole_time_val)
 
             os.remove(query_result[0]) #delete original downloaded file
-            ind_timespickup = np.where(np.array(all_size_sieved_times) == hole_time_val)[0][0]
+            ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == hole_time_val)[0][0]
             zoomed_time_range = TimeRange(str(hole_time_val),timedelta(hours=time_window))
 
             fetch_inds_to_try_list = [] 
             #the zeroth entry didn't have it so that's why plus 1 in the brackets
-            for time_val in all_size_sieved_times[ind_timespickup+1: ind_timespickup + look_ahead]:
+            for time_val in all_size_sieved_times_pre[ind_timespickup+1: ind_timespickup + look_ahead]:
                 if time_val in zoomed_time_range: #this is the next fitting time in the list, slightly less than 2hrs seperated theoretically
-                    ind_next_good_time = np.where(np.array(all_size_sieved_times) == time_val)[0]
+                    ind_next_good_time = np.where(np.array(all_size_sieved_times_pre) == time_val)[0][0]
                     fetch_indices_next_good = ind[ind_next_good_time]
                     fetch_inds_to_try_list.append(fetch_indices_next_good)
 
@@ -342,16 +344,16 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
         unreadable_file_ids_product_list.append(product_results.get_response(0)[int(indiv_ind)]['fileid'])
         bad_time_val = product_results.get_response(0)[int(indiv_ind)]['time']['start']
         all_2hr_sieved_times_product_times.remove(bad_time_val)
-        ind_bad_time_val = np.where(np.array(all_size_sieved_times) == bad_time_val)[0][0]
+        ind_bad_time_val = np.where(np.array(all_size_sieved_times_pre) == bad_time_val)[0][0]
         all_2hr_sieved_times_product_times_inds_list.remove(ind_bad_time_val)
         os.remove(query_result[0]) #delete original downloaded file
-        ind_timespickup = np.where(np.array(all_size_sieved_times) == bad_time_val)[0][0]
+        ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == bad_time_val)[0][0]
         zoomed_time_range = TimeRange(str(bad_time_val),timedelta(hours=time_window))
 
         fetch_inds_to_try_list = [] #gets reset for each new item
-        for time_val in all_size_sieved_times[ind_timespickup+1: ind_timespickup + look_ahead]:
+        for time_val in all_size_sieved_times_pre[ind_timespickup+1: ind_timespickup + look_ahead]:
             if time_val in zoomed_time_range: #this is the next fitting time in the list, slightly less than 2hrs seperated theoretically
-                ind_next_good_time = np.where(np.array(all_size_sieved_times) == time_val)[0]
+                ind_next_good_time = np.where(np.array(all_size_sieved_times_pre) == time_val)[0][0]
                 fetch_indices_next_good = ind[ind_next_good_time]
                 fetch_inds_to_try_list.append(fetch_indices_next_good)
 
