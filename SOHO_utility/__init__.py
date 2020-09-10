@@ -172,7 +172,18 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
     data_files_pre = [f for f in listdir(filepath) if isfile(join(filepath, f))]
     data_files = np.sort(data_files_pre) #to have chronological order and to sink order with list of individual product times
     print('len(data_files):', len(data_files))
-    
+
+    if len(data_files) != 0:
+        time_start_name_pre = data_files[0] 
+        time_start_name = str(time_start_name_pre.split('_')[3])
+        time_start_name_new = time_start_name[0:4] + '-' + time_start_name[4:6] + '-' + time_start_name[6:8] + '-' + time_start_name[8:10] + ':' + time_start_name[10:12] + ':' + time_start_name[12:14]
+        time_finish_name_pre = data_files[-1] 
+        time_finish_name = str(time_finish_name_pre.split('_')[3])
+        time_finish_name_new = time_finish_name[0:4] + '-' + time_finish_name[4:6] + '-' + time_finish_name[6:8] + '-' + time_finish_name[8:10] + ':' + time_finish_name[10:12] + ':' + time_finish_name[12:14]
+    else:
+        time_start_name_new = date_start
+        time_finish_name_new = date_finish
+            
     data_content_list = []
     for elem in data_files:
         axdim1,axdim2,data_content = readfits(f'{filepath}{elem}')
@@ -185,7 +196,7 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
     else:
         data_content_stack = []
                   
-    data_cube = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{flag}_{target_dimension}.h5', 'w')
+    data_cube = h5py.File(f'{home_dir}{time_start_name_new}_to_{time_finish_name_new}_{base}_{flag}_{target_dimension}.h5', 'w')
     data_cube.create_dataset(f'{base}_{target_dimension}', data=data_content_stack, compression="gzip")
     data_cube.close()
                             
