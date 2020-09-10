@@ -134,6 +134,40 @@ def data_reducer(data,flag,target_dimension,axis1_shape):
     return reduced_data
 
 
+def prev_time_resumer(home_dir, base, time_range_orig): 
+#CAN RE-RUN PROGRAM FROM THE LAST DATE ON WHICH STOPPED; WILL PICK UP THE TIMES THAT ARE PRESENT AND CONTINUE! For both resuming on same day and next day.
+### CHECKS WHETHER THE START DAY THAT ENTERED IS ALREADY CONTAINED IN THE FILES OF PREVIOUS DAY AND START_DATE FROM THAT EXACT TIME! ALSO WORKS IF START ON A NEW DAY AND ARE LOOKING BACK ON THE PREVIOUS DAY
+    
+    print('base:', base)
+    filepath = home_dir + base + '/'
+
+    data_files_pre = [f for f in listdir(filepath) if isfile(join(filepath, f))]
+    data_files = np.sort(data_files_pre)
+    
+    if len(data_files) != 0:
+        prev_time_pre = data_files[-1] 
+        prev_time = [prev_time_pre.split('_')[3]]
+        print('from function prev_time:', prev_time)
+             
+        print('str(prev_time[0][0:8]:', str(prev_time[0][0:8]),'\n' 'str(time_range_orig.start):', str(time_range_orig.start))
+        time_orig_pre = str(time_range_orig.start)
+        print('time_orig_pre:', time_orig_pre)
+        time_orig = ''.join(time_orig_pre.split(' ')[0].split('-'))
+        print('time_orig:', time_orig)
+        
+        if str(prev_time[0][0:8]) == time_orig:
+            time_begin = prev_time[0]
+            time_range = TimeRange(time_begin, time_range_orig.end)
+        else:
+            time_range = time_range_orig            
+    
+    elif len(data_files) == 0:
+        prev_time = []
+        time_range = time_range_orig   
+    
+    return prev_time, time_range
+
+
 def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
 
     print('base:', base)
@@ -215,7 +249,7 @@ def index_of_sizes(base,product_results):
 def fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time):
     
     all_size_sieved_times_pre = [] #local list to populate at each loop
-    all_2hr_sieved_times = [] #local list to populate at each loop
+    all_time_window_sieved_times = [] #local list to populate at each loop
 
     for value in ind:
         all_size_sieved_times_pre.append(product_results.get_response(0)[int(value)]['time']['start'])
@@ -232,23 +266,27 @@ def fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time):
         if local_list:
             for entry in local_list[1:]:
                 all_size_sieved_times_aug.remove(entry)
-            all_2hr_sieved_times.append(local_list[0])
+            all_time_window_sieved_times.append(local_list[0])
 
-    all_2hr_sieved_times_product_times = list(np.unique(all_2hr_sieved_times)) #np.unique() does np.array() and np.sort()
+    all_time_window_sieved_times_product_times = list(np.unique(all_time_window_sieved_times)) #np.unique() does np.array() and np.sort()
 
     if not prev_time: #so if no prev_time (i.e., prev_time = [] at the start of the first loop)    
-        all_2hr_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times_pre) == item)[0][0] for item in all_2hr_sieved_times_product_times]
-    elif prev_time:
-        all_2hr_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times_pre) == item)[0][0] for item in all_2hr_sieved_times_product_times[1:]] 
-        #so here skip the first entry added in from the previous loop given by the expression "all_size_sieved_times_aug = prev_time + all_size_sieved_times" above    
+        all_time_window_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times_pre) == item)[0][0] for item in all_time_window_sieved_times_product_times]
+        new_inds = [np.where(np.array(all_size_sieved_times_pre) == entry)[0][0] for entry in all_time_window_sieved_times_product_times]      
     
-    if all_2hr_sieved_times_product_times_inds_list_pre:
-        all_2hr_sieved_times_product_times_inds_list = list(np.hstack(all_2hr_sieved_times_product_times_inds_list_pre))
+    elif prev_time:
+        all_time_window_sieved_times_product_times_inds_list_pre = [np.where(np.array(all_size_sieved_times_pre) == item)[0][0] for item in all_time_window_sieved_times_product_times[1:]] 
+        #so here skip the first entry added in from the previous loop given by the expression "all_size_sieved_times_aug = prev_time + all_size_sieved_times" above 
+        new_inds = [np.where(np.array(all_size_sieved_times_pre) == entry)[0][0] for entry in all_time_window_sieved_times_product_times[1:]]                
+    
+    if all_time_window_sieved_times_product_times_inds_list_pre:
+        all_time_window_sieved_times_product_times_inds_list = list(np.hstack(all_time_window_sieved_times_product_times_inds_list_pre))
+    else:
+        all_time_window_sieved_times_product_times_inds_list = []   
 
-    new_inds = [np.where(np.array(all_size_sieved_times_pre) == entry)[0][0] for entry in all_2hr_sieved_times_product_times]
     fetch_indices_product = ind[new_inds]
     
-    return all_size_sieved_times_pre, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, fetch_indices_product
+    return all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, fetch_indices_product
     
 
 def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir):
@@ -274,7 +312,7 @@ def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir):
     return query_result
 
 
-def product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times_pre, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, query_result, ind, indiv_ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir):
+def product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, query_result, ind, indiv_ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir):
 
     holes_product_list = []
     unreadable_file_ids_product_list = []
@@ -293,11 +331,11 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
             holes_product_list.append((hole_loc, str(time_data)))
             hole_time_val = product_results.get_response(0)[int(indiv_ind)]['time']['start']
             
-            all_2hr_sieved_times_product_times.remove(hole_time_val)
+            all_time_window_sieved_times_product_times.remove(hole_time_val)
             
             ind_hole_time_val = np.where(np.array(all_size_sieved_times_pre) == hole_time_val)[0][0]
             
-            all_2hr_sieved_times_product_times_inds_list.remove(ind_hole_time_val)
+            all_time_window_sieved_times_product_times_inds_list.remove(ind_hole_time_val)
 
             os.remove(query_result[0]) #delete original downloaded file
             ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == hole_time_val)[0][0]
@@ -322,8 +360,8 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
                         time_data = product_results.get_response(0)[int(index)]['time']['start']
                         writefits(f'{base}/SOHO_{base}_{time_data}_{target_dimension}', reduced_product_data, home_dir)
 
-                        all_2hr_sieved_times_product_times.append(time_data) #(time_val) #unsorted time location
-                        all_2hr_sieved_times_product_times_inds_list.append(index)
+                        all_time_window_sieved_times_product_times.append(time_data) #(time_val) #unsorted time location
+                        all_time_window_sieved_times_product_times_inds_list.append(index)
                         os.remove(query_result_next[0]) #delete original downloaded file
                         break
 
@@ -343,9 +381,9 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
     elif (data_product is None) or (axis1_product != axis2_product):
         unreadable_file_ids_product_list.append(product_results.get_response(0)[int(indiv_ind)]['fileid'])
         bad_time_val = product_results.get_response(0)[int(indiv_ind)]['time']['start']
-        all_2hr_sieved_times_product_times.remove(bad_time_val)
+        all_time_window_sieved_times_product_times.remove(bad_time_val)
         ind_bad_time_val = np.where(np.array(all_size_sieved_times_pre) == bad_time_val)[0][0]
-        all_2hr_sieved_times_product_times_inds_list.remove(ind_bad_time_val)
+        all_time_window_sieved_times_product_times_inds_list.remove(ind_bad_time_val)
         os.remove(query_result[0]) #delete original downloaded file
         ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == bad_time_val)[0][0]
         zoomed_time_range = TimeRange(str(bad_time_val),timedelta(hours=time_window))
@@ -368,8 +406,8 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
                     time_data = product_results.get_response(0)[int(index)]['time']['start']
                     writefits(f'{base}/SOHO_{base}_{time_data}_{target_dimension}', reduced_product_data, home_dir)
 
-                    all_2hr_sieved_times_product_times.append(time_data) #(time_val) #unsorted time location
-                    all_2hr_sieved_times_product_times_inds_list.append(index)
+                    all_time_window_sieved_times_product_times.append(time_data) #(time_val) #unsorted time location
+                    all_time_window_sieved_times_product_times_inds_list.append(index)
                     os.remove(query_result_next[0])
                     break
 
@@ -385,13 +423,13 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
                 os.remove(query_result_next[0])
                 continue
     
-    all_2hr_sieved_times_product_times_modified = all_2hr_sieved_times_product_times
+    all_time_window_sieved_times_product_times_modified = all_time_window_sieved_times_product_times
 
-    return all_2hr_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list 
+    return all_time_window_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list 
     #think whether need this new name or need to feed back, i think is ok
 
 
-def csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_2hr_sieved_times_sorted):
+def csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_time_window_sieved_times_sorted):
     with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}.csv', 'a') as f: #appending lines so not overwriting the file
         writer = csv.writer(f, delimiter='\n')
-        writer.writerow(all_2hr_sieved_times_sorted)
+        writer.writerow(all_time_window_sieved_times_sorted)

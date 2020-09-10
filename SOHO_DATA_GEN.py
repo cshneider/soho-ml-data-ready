@@ -53,48 +53,54 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
             os.makedirs(base_dir)    
 
         time_range = TimeRange(date_time_start, timedelta(days = time_increment)) #time_range re-initialized here
-        #print('time_range:', time_range)
 
-        prev_time = []
+        prev_time, time_range_modified = prev_time_resumer(home_dir, base, time_range)        
         for t_value in np.arange(num_loops): #main workhorse loop
             print('t_value:', t_value)
             print('prev_time:', prev_time)
                 
-            if time_range.end > date_time_end:
-                time_range = TimeRange(time_range.start, date_time_end)  
+            if time_range_modified.end > date_time_end:
+                time_range_modified = TimeRange(time_range_modified.start, date_time_end)  
                        
-            product_results = product_search(base,time_range,date_time_start)
+            product_results = product_search(base,time_range_modified,date_time_start)
             product_results_number = product_results.file_num
             if product_results_number != 0:
                 ind = index_of_sizes(base,product_results)
-                all_size_sieved_times_pre, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, fetch_indices_product = fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time)
-                for item in fetch_indices_product:
-                    query_result = product_retriever(base,product_results,item,url_prefix,home_dir)
-                    axis1_product,axis2_product,data_product = readfits(query_result[0])
-                    all_2hr_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list_local = product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times_pre, all_2hr_sieved_times_product_times, all_2hr_sieved_times_product_times_inds_list, query_result, ind, item, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir)
+                all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, fetch_indices_product = fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time)
                 
-                    if holes_product_list:
-                        holes_list.append(holes_product_list)
+                if len(fetch_indices_product) != 0:
+                
+                    for item in fetch_indices_product:
+                        query_result = product_retriever(base,product_results,item,url_prefix,home_dir)
+                        axis1_product,axis2_product,data_product = readfits(query_result[0])
+                        all_time_window_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list_local = product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, query_result, ind, item, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir)
+                
+                        if holes_product_list:
+                            holes_list.append(holes_product_list)
                     
-                    if unreadable_file_ids_product_list_local:
-                        unreadable_file_ids_product_list_global.append(unreadable_file_ids_product_list_local)
+                        if unreadable_file_ids_product_list_local:
+                            unreadable_file_ids_product_list_global.append(unreadable_file_ids_product_list_local)
             
-                if not prev_time:
-                    all_2hr_sieved_times_sorted = np.unique(all_2hr_sieved_times_product_times_modified)
-                elif prev_time:                    
-                    all_2hr_sieved_times_sorted = np.unique(all_2hr_sieved_times_product_times_modified[1:])
+                    if not prev_time:
+                        all_time_window_sieved_times_sorted = np.unique(all_time_window_sieved_times_product_times_modified)
+                    elif prev_time:                    
+                        all_time_window_sieved_times_sorted = np.unique(all_time_window_sieved_times_product_times_modified[1:])
                                 
-                print(f'{base} np.unique(all_size_sieved_times_pre):', np.unique(all_size_sieved_times_pre), len(np.unique(all_size_sieved_times_pre)))
-                print(f'{base} list(all_2hr_sieved_times_sorted):', list(all_2hr_sieved_times_sorted), len(all_2hr_sieved_times_sorted))
+                    print(f'{base} np.unique(all_size_sieved_times_pre):', np.unique(all_size_sieved_times_pre), len(np.unique(all_size_sieved_times_pre)))
+                    print(f'{base} list(all_time_window_sieved_times_sorted):', list(all_time_window_sieved_times_sorted), len(all_time_window_sieved_times_sorted))
 
-                prev_time = [] #reset to empty list
-                if len(all_2hr_sieved_times_sorted) != 0:
-                    prev_time.append(all_2hr_sieved_times_sorted[-1]) #append the last good time entry from the previous loop
+                    prev_time = [] #reset to empty list
+                    if len(all_time_window_sieved_times_sorted) != 0:
+                        prev_time.append(all_time_window_sieved_times_sorted[-1]) #append the last good time entry from the previous loop
                             
-                csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_2hr_sieved_times_sorted)
+                    csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_time_window_sieved_times_sorted)
+                
+                else:
+                    holes_list = []
+                    unreadable_file_ids_product_list_global = []                 
 
-            time_range.next() #Sunpy iterator to go for the next 2 months #also have time_range.previous() to go back. #### UNCOMMENT!    
-            #print('time_range next:', time_range)
+            time_range_modified.next() #Sunpy iterator to go for the next 2 months #also have time_range_modified.previous() to go back. #### UNCOMMENT!    
+            #print('time_range_modified next:', time_range_modified)
         
         print(f'{base} holes_list', holes_list)
         print(f'{base} unreadable_file_ids_product_list_global:', unreadable_file_ids_product_list_global)
