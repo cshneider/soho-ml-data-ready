@@ -147,13 +147,9 @@ def prev_time_resumer(home_dir, base, time_range_orig):
     if len(data_files) != 0:
         prev_time_pre = data_files[-1] 
         prev_time = [prev_time_pre.split('_')[3]]
-        print('from function prev_time:', prev_time)
              
-        print('str(prev_time[0][0:8]:', str(prev_time[0][0:8]),'\n' 'str(time_range_orig.start):', str(time_range_orig.start))
         time_orig_pre = str(time_range_orig.start)
-        print('time_orig_pre:', time_orig_pre)
         time_orig = ''.join(time_orig_pre.split(' ')[0].split('-'))
-        print('time_orig:', time_orig)
         
         if str(prev_time[0][0:8]) == time_orig:
             time_begin = prev_time[0]
