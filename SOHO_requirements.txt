@@ -1,0 +1,10 @@
+python                    3.6.10               h7579374_2  
+h5py                      2.8.0                    pypi_0    pypi
+astropy                   3.0.5            py36h470a237_0    conda-forge
+pytest-astropy            0.4.0                      py_0    conda-forge
+sunpy                     0.9.4            py36h470a237_0    conda-forge
+scikit-image              0.14.1           py36hfc679d8_1    conda-forge
+scikit-learn              0.20.1           py36h4989274_0  
+scipy                     1.1.0            py36hfa4b5c9_1  
+numpy                     1.15.4                   pypi_0    pypi
+numpy-base                1.15.4           py36h81de0dd_0  
