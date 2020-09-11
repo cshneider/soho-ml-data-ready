@@ -314,7 +314,7 @@ def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir):
     
     fileid = product_results.get_response(0)[int(indiv_ind)]['fileid']
     item_wget =  url_prefix + fileid
-    cmd = 'wget' + ' ' + item_wget + ' ' + '-P' + ' ' + f'{home_dir}{base}' #OBTAIN TIMEOUT ISSUE WITH FIDO FETCH! SEEMS THAT WITH WGET CAN CIRCUMNAVIGATE IT.
+    cmd = 'wget' + ' ' + item_wget + ' ' + '-P' + ' ' + f'{home_dir}{base}' #OBTAIN TIMEOUT ISSUE WITH FIDO FETCH! SEEMS THAT WITH WGET CAN CIRCUMVENT IT.
     args = shlex.split(cmd)    
     wget_output = str(subprocess.check_output(args)).strip('b')
     

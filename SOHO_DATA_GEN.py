@@ -6,7 +6,19 @@ from sunpy.time import TimeRange
 
 from SOHO_utility import *
 
-def main(date_start, date_finish, target_dimension, time_increment, time_window, flag, home_dir):
+"""
+This program focuses entirely on data products obtained from the NASA SOHO (Solar and Heliospheric Observatory) mission: MDI (Michelson Doppler Imager) @96 minute cadence, 
+LASCO (Large Angle and Spectrometric Coronagraph): C2 (1.5 - 6 solar radii) and C3 (3.7 to 30 solar radii), and EIT (Extreme ultraviolet Imaging Telescope) @ 171, 195, 284, 304 Angstroms).
+This program returns up to 7 folders, as specified by the user, named after their resective products which are queried with SunPy's Fido (Federated Internet Data Obtainer), in this case, specifically from the VSO's (Virtual Solar Observatory) SDAC (Solar Data Analysis Center, NASA/Goddard) provider. 
+Each folder contains FITS (Flexible Image Transport System) files which have been sieved for: appropriate image size, filtered for image intergrity, and time stepped according to the user's input.
+SOHO mission data products can be obtained from VSO as follows: for MDI: 1996.05.01 − 2011.04.12, for LASCO: 1995.12.08 till present, for EIT 1996.01.01 to present. 
+However, the SDO (Solar Dynamics Observatory) mission provides higher resolution and higher cadence data products from 2010.05.12 AIA (Atmospheric Imaging Assembly) and from 2010.04.30 EVE (Extreme Ultraviolet Variability Experiment) together replaced EIT, from 2010.04.08 HMI (Helioseismic and Magnetic Imager) replaced MDI. 
+The advantage of using SOHO data is that it has basically covered solar cycles 23 and 24 with all of its products and continues into cyle 25 with most of its products.       
+Due to the VSO limit of 10k returns per query, it is recommended to use a maximum time increment of 60 days. 
+ 
+"""
+
+def main(date_start, date_finish, target_dimension, time_increment, time_window, flag, home_dir, bases):
     
     date_time_pre_start = date_start + '-0000'
     date_time_start= parser.parse(date_time_pre_start)
@@ -40,10 +52,12 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
     total_sec = timedelta(days = time_increment).total_seconds()
     print('total_sec:', total_sec)
 
-    num_loops = np.ceil(diff_start_finish_total_sec/total_sec) + 1 #num_loops would be equal to 94 + 1 for 19960101-0000' - '20110501-0000'; discete number of loops so go over rather than under
+    num_loops = np.ceil(diff_start_finish_total_sec/total_sec) + 1 #num_loops would be equal to 94 + 1 for 19960101-0000' - '20110501-0000'
     print('num_loops:', num_loops)
 
-    for base in ['EIT195', 'MDI_96m','LASCO_C2','LASCO_C3','EIT171','EIT304','EIT284']: #[1:2] can place range to run a subset of the products here
+    base_list = bases.split(',')
+    for base in base_list:
+        base = base.strip(' ')
         holes_list = []
         unreadable_file_ids_product_list_global = []
     
@@ -52,10 +66,10 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
         if not os.path.exists(base_dir):
             os.makedirs(base_dir)    
 
-        time_range = TimeRange(date_time_start, timedelta(days = time_increment)) #time_range re-initialized here
+        time_range = TimeRange(date_time_start, timedelta(days = time_increment)) #time_range re-initialized here for each new base name
 
-        prev_time, time_range_modified = prev_time_resumer(home_dir, base, time_range)        
-        for t_value in np.arange(num_loops): #main workhorse loop
+        prev_time, time_range_modified = prev_time_resumer(home_dir, base, time_range)      
+        for t_value in np.arange(num_loops): #this is the main workhorse loop of the program
             print('t_value:', t_value)
             print('prev_time:', prev_time)
                 
@@ -75,7 +89,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
                         axis1_product,axis2_product,data_product = readfits(query_result[0])
                         all_time_window_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list_local = product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, query_result, ind, item, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir)
                 
-                        if holes_product_list:
+                        if holes_product_list: #if image had missing regions (e.g., arising from telemetry errors)
                             holes_list.append(holes_product_list)
                     
                         if unreadable_file_ids_product_list_local:
@@ -99,7 +113,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
                     holes_list = []
                     unreadable_file_ids_product_list_global = []                 
 
-            time_range_modified.next() #Sunpy iterator to go for the next 2 months #also have time_range_modified.previous() to go back. #### UNCOMMENT!    
+            time_range_modified.next() #Sunpy iterator to go for the next time increment in number of days. There is also time_range_modified.previous() to go backwards in time.    
             #print('time_range_modified next:', time_range_modified)
         
         print(f'{base} holes_list', holes_list)
@@ -112,13 +126,13 @@ if __name__ == '__main__':
     import argparse
     parser_args = argparse.ArgumentParser(description='SOHO ML Data experiment parameters')
     parser_args.add_argument('--date_start', metavar='time', required=True, help='yyyy-mm-dd, 1996-01-01 is earliest start', type = str)
-    parser_args.add_argument('--date_finish', metavar='time', required=True, help='yyyy-mm-dd, 2011-05-01 is recommended latest finish, select a minimum range of 2 months', type = str)
+    parser_args.add_argument('--date_finish', metavar='time', required=True, help='yyyy-mm-dd, 2011-05-01 is recommended latest finish, select a max range of 2 months', type = str)
     parser_args.add_argument('--target_dimension', metavar='image size', required=True, help='e.g., 128', type = int)
     parser_args.add_argument('--time_increment', metavar='days at a time to loop over', required=False, help='max time span must be around 2 months as there is a 10k limit to VSO return search query', default = 60, type = int)
     parser_args.add_argument('--time_window', metavar='time', required=True, help='time step in hours', type = float)
     parser_args.add_argument('--flag', metavar='resize strategy', required=True, help='choose from either "subsample", "interp", "minpool", or "maxpool" ', type = str)
     parser_args.add_argument('--home_dir', metavar='home directory', required=True, help='str, e.g., "/home/user/Documents/", need "/" in the end', type = str)
-
+    parser_args.add_argument('--products', metavar='product types', required=True, help='str, Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284"', type = str)
 
     args = parser_args.parse_args()
     main(
@@ -128,4 +142,5 @@ if __name__ == '__main__':
         time_increment = args.time_increment,
         time_window = args.time_window,
         flag = args.flag,
-        home_dir = args.home_dir)  
+        home_dir = args.home_dir,
+        bases = args.products)  
