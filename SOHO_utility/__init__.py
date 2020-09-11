@@ -23,7 +23,9 @@ import h5py
 
 import csv
 
-
+"""
+Checks that a fits file contains data otherwise returns unequal axes which results in such a file being discarded. 
+"""
 def readfits(filename):
     try:
         ft = fits.open(filename, memmap=False)
@@ -40,11 +42,17 @@ def readfits(filename):
             
     return axis1,axis2,data
 
+"""
+Writes a fits file
+"""
 def writefits(filename, data, home_dir):
     if not os.path.exists(f'{home_dir}{filename}.fits'):
         fitsname = fits.PrimaryHDU(data)
         fitsname.writeto(f'{home_dir}{filename}.fits')
 
+"""
+Checks original image for missing pixel data.
+"""
 def holes(filename):
     filename = str(filename)
     
@@ -118,7 +126,9 @@ def holes(filename):
         else:
             return False #can use this image
         
-
+"""
+Reduces the image dimensions via one of the following four methods: subsampling, interpolation, min pooling, or max pooling.
+"""
 def data_reducer(data,flag,target_dimension,axis1_shape):
     scale_factor = int(axis1_shape/target_dimension)
     
@@ -133,7 +143,9 @@ def data_reducer(data,flag,target_dimension,axis1_shape):
     
     return reduced_data
 
-
+"""
+Resumes adding fits files if had previous interuption of program. Looks up times present and continues to add files at specified time interval.
+"""
 def prev_time_resumer(home_dir, base, time_range_orig): 
 #CAN RE-RUN PROGRAM FROM THE LAST DATE ON WHICH STOPPED; WILL PICK UP THE TIMES THAT ARE PRESENT AND CONTINUE! For both resuming on same day and next day.
 ### CHECKS WHETHER THE START DAY THAT ENTERED IS ALREADY CONTAINED IN THE FILES OF PREVIOUS DAY AND START_DATE FROM THAT EXACT TIME! ALSO WORKS IF START ON A NEW DAY AND ARE LOOKING BACK ON THE PREVIOUS DAY
@@ -163,7 +175,9 @@ def prev_time_resumer(home_dir, base, time_range_orig):
     
     return prev_time, time_range
 
-
+"""
+Specified date and time in the naming of both the h5py and csv files
+"""
 def data_name_selector(home_dir, base, date_start, date_finish):
 
     print('base:', base)
@@ -186,7 +200,9 @@ def data_name_selector(home_dir, base, date_start, date_finish):
         
     return time_start_name_new, time_finish_name_new
 
-
+"""
+Generated a compressed h5py data cube from all fits files present in a product folder
+"""
 def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
 
     print('base:', base)
@@ -216,7 +232,9 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
                             
     return data_cube
 
-
+"""
+Used SunPy's Fido to search for the user specified products
+"""
 def product_search(base,time_range,date_time_start):
     if 'EIT' in base:
         wavelen = int(base[3:6])
@@ -231,7 +249,9 @@ def product_search(base,time_range,date_time_start):
     
     return product_results
 
-
+"""
+Returns the indices corresponding to the proper sizes of each of the data products to ensure that they are single, two dimensional images.
+"""
 def index_of_sizes(base,product_results):
     
     matches = ['171', '304', '284']
@@ -266,7 +286,10 @@ def index_of_sizes(base,product_results):
         
     return ind
    
-
+"""
+From the appropriate file size image indices, this function picks up those times and their corresponding indices that are seperated by the user defined time window. 
+The indices returned by this function will be used in the product object returned by Fido search.
+"""
 def fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time):
     
     all_size_sieved_times_pre = [] #local list to populate at each loop
@@ -309,7 +332,9 @@ def fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time):
     
     return all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, fetch_indices_product
     
-
+"""
+Using Fido's returned query object that has now been sieved for proper data size and user specified time window, the fileid is extracted from the accompanying Fido dictionary and wget is used to retrieve the product. Fido has a command Fido.fetch() which can be used to. This method appears to time out after it has been called a certain number of times across the network. wget seems more robust for this purpose. 
+"""
 def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir):
     
     fileid = product_results.get_response(0)[int(indiv_ind)]['fileid']
@@ -332,7 +357,9 @@ def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir):
     
     return query_result
 
-
+"""
+Checks the downloaded fits files for holes and discards them if holes are found. Repeats procedure at each time as long as an image contained missing pixels. 
+"""
 def product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, query_result, ind, indiv_ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir):
 
     holes_product_list = []
@@ -449,7 +476,9 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
     return all_time_window_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list 
     #think whether need this new name or need to feed back, i think is ok
 
-
+"""
+The times corresponding to all fits files that passed all tests are written to csv files.
+"""
 def csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_time_window_sieved_times_sorted):
     time_start_name_new, time_finish_name_new = data_name_selector(home_dir, base, date_start, date_finish)
     with open(f'{home_dir}{time_start_name_new}_to_{time_finish_name_new}_{base}_times_{flag}_{target_dimension}.csv', 'a') as f: #appending lines so not overwriting the file

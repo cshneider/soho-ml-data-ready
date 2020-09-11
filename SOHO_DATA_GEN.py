@@ -10,12 +10,16 @@ from SOHO_utility import *
 This program focuses entirely on data products obtained from the NASA SOHO (Solar and Heliospheric Observatory) mission: MDI (Michelson Doppler Imager) @96 minute cadence, 
 LASCO (Large Angle and Spectrometric Coronagraph): C2 (1.5 - 6 solar radii) and C3 (3.7 to 30 solar radii), and EIT (Extreme ultraviolet Imaging Telescope) @ 171, 195, 284, 304 Angstroms).
 This program returns up to 7 folders, as specified by the user, named after their resective products which are queried with SunPy's Fido (Federated Internet Data Obtainer), in this case, specifically from the VSO's (Virtual Solar Observatory) SDAC (Solar Data Analysis Center, NASA/Goddard) provider. 
-Each folder contains FITS (Flexible Image Transport System) files which have been sieved for: appropriate image size, filtered for image intergrity, and time stepped according to the user's input.
-SOHO mission data products can be obtained from VSO as follows: for MDI: 1996.05.01 − 2011.04.12, for LASCO: 1995.12.08 till present, for EIT 1996.01.01 to present. 
-However, the SDO (Solar Dynamics Observatory) mission provides higher resolution and higher cadence data products from 2010.05.12 AIA (Atmospheric Imaging Assembly) and from 2010.04.30 EVE (Extreme Ultraviolet Variability Experiment) together replaced EIT, from 2010.04.08 HMI (Helioseismic and Magnetic Imager) replaced MDI. 
-The advantage of using SOHO data is that it has basically covered solar cycles 23 and 24 with all of its products and continues into cyle 25 with most of its products.       
+Each folder contains FITS (Flexible Image Transport System) files which have been sieved for: appropriate image size, filtered for image intergrity (e.g., an absence of thresholded value of pixels in the original image), and time stepped according to the user's input.
+Next to these product folders, there are h5py data cubes which is the chronologically stacked data of all of the respective folder's fits files and csv (comma seperated value) files generated with all the remaining good times of the downloaded fits files. 
+A log file would contain the names of files with holes, including a url path for these images. 
 Due to the VSO limit of 10k returns per query, it is recommended to use a maximum time increment of 60 days. 
- 
+
+SOHO mission data products can be obtained from VSO as follows: for MDI: 1996.05.01 − 2011.04.12, for LASCO: 1995.12.08 till present, for EIT 1996.01.01 to present. 
+The SDO (Solar Dynamics Observatory) mission provides higher resolution and higher cadence data products from 2010.05.12 AIA (Atmospheric Imaging Assembly) and from 2010.04.30 EVE (Extreme Ultraviolet Variability Experiment) together replaced EIT, from 2010.04.08 HMI (Helioseismic and Magnetic Imager) replaced MDI. 
+The advantage of using SOHO data is that it has basically covered solar cycles 23 and 24 with all of its products and continues into cyle 25 with most of its products.       
+
+For querying all 7 data products with a time window of 6 hours and time span of 01.01.1996 - 01.05.2011, program takes XXX hours to run.
 """
 
 def main(date_start, date_finish, target_dimension, time_increment, time_window, flag, home_dir, bases):
@@ -43,7 +47,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
     url_prefix = 'https://seal.nascom.nasa.gov/'
     print('url_prefix:', url_prefix)
 
-    look_ahead = int(np.ceil(time_window*60/10)) #should sufficiently cover all 6 products based on their cadence.
+    look_ahead = int(np.ceil(time_window*60/10)) #should sufficiently cover all 7 products based on their cadence.
     print('look_ahead:', look_ahead)
 
     diff_start_finish_total_sec = (date_time_end - date_time_start).total_seconds()
