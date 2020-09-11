@@ -188,12 +188,19 @@ def data_name_selector(home_dir, base, date_start, date_finish):
     print('len(data_files):', len(data_files)) 
     
     if len(data_files) != 0: 
-        time_start_name_pre = data_files[0] 
-        time_start_name = str(time_start_name_pre.split('_')[3])
+        time_start_name_pre = data_files[0]
+        time_finish_name_pre = data_files[-1]         
+        
+        if 'EIT' in str(time_start_name_pre):
+            time_start_name = str(time_start_name_pre.split('_')[2])
+            time_finish_name = str(time_finish_name_pre.split('_')[2])        
+        else:
+            time_start_name = str(time_start_name_pre.split('_')[3])
+            time_finish_name = str(time_finish_name_pre.split('_')[3])
+        
         time_start_name_new = time_start_name[0:4] + '-' + time_start_name[4:6] + '-' + time_start_name[6:8] + '-' + time_start_name[8:10] + ':' + time_start_name[10:12] + ':' + time_start_name[12:14]
-        time_finish_name_pre = data_files[-1] 
-        time_finish_name = str(time_finish_name_pre.split('_')[3])
         time_finish_name_new = time_finish_name[0:4] + '-' + time_finish_name[4:6] + '-' + time_finish_name[6:8] + '-' + time_finish_name[8:10] + ':' + time_finish_name[10:12] + ':' + time_finish_name[12:14]
+    
     else:
         time_start_name_new = date_start 
         time_finish_name_new = date_finish   
@@ -480,7 +487,6 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
 The times corresponding to all fits files that passed all tests are written to csv files.
 """
 def csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_time_window_sieved_times_sorted):
-    time_start_name_new, time_finish_name_new = data_name_selector(home_dir, base, date_start, date_finish)
-    with open(f'{home_dir}{time_start_name_new}_to_{time_finish_name_new}_{base}_times_{flag}_{target_dimension}.csv', 'a') as f: #appending lines so not overwriting the file
+    with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}.csv', 'a') as f: #appending lines so not overwriting the file
         writer = csv.writer(f, delimiter='\n')
         writer.writerow(all_time_window_sieved_times_sorted)
