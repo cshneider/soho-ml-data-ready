@@ -157,8 +157,11 @@ def prev_time_resumer(home_dir, base, time_range_orig):
     data_files = np.sort(data_files_pre)
     
     if len(data_files) != 0:
-        prev_time_pre = data_files[-1] 
-        prev_time = [prev_time_pre.split('_')[3]]
+        prev_time_pre = data_files[-1]
+        if 'EIT' in str(prev_time_pre): 
+            prev_time = [prev_time_pre.split('_')[2]]
+        else:
+            prev_time = [prev_time_pre.split('_')[3]]
              
         time_orig_pre = str(time_range_orig.start)
         time_orig = ''.join(time_orig_pre.split(' ')[0].split('-'))

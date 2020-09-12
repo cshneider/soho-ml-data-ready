@@ -3,6 +3,7 @@ import os
 from dateutil import parser
 from datetime import datetime, date, time, timedelta
 from sunpy.time import TimeRange
+from time import process_time
 
 from SOHO_utility import *
 
@@ -61,6 +62,8 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
 
     base_list = bases.split(',')
     for base in base_list:
+        start_process_time = process_time() #initialize clock per product type
+            
         base = base.strip(' ')
         holes_list = []
         unreadable_file_ids_product_list_global = []
@@ -123,7 +126,11 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
         print(f'{base} holes_list', holes_list)
         print(f'{base} unreadable_file_ids_product_list_global:', unreadable_file_ids_product_list_global)
 
-        data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension)    
+        data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension)
+        
+        end_process_time = process_time()
+        time_of_process = end_process_time - start_process_time
+        print(f'{base} time of process in seconds:', time_of_process)            
 
     
 if __name__ == '__main__':
