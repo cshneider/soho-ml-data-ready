@@ -4,7 +4,7 @@ from dateutil import parser
 from datetime import datetime, date, time, timedelta
 from sunpy.time import TimeRange
 from time import process_time
-
+from tqdm import tqdm
 from SOHO_utility import *
 
 """
@@ -20,7 +20,7 @@ SOHO mission data products can be obtained from VSO as follows: for MDI: 1996.05
 The SDO (Solar Dynamics Observatory) mission provides higher resolution and higher cadence data products from 2010.05.12 AIA (Atmospheric Imaging Assembly) and from 2010.04.30 EVE (Extreme Ultraviolet Variability Experiment) together replaced EIT, from 2010.04.08 HMI (Helioseismic and Magnetic Imager) replaced MDI. 
 The advantage of using SOHO data is that it has basically covered solar cycles 23 and 24 with all of its products and continues into cyle 25 with most of its products.       
 
-For querying all 7 data products with a time window of 6 hours and time span of 01.01.1996 - 01.05.2011, program takes XXX hours to run.
+For querying all 7 data products with a time window of 6 hours and time span of 01.01.1996 - 01.05.2011, program takes ~XXX hours to run.
 """
 
 def main(date_start, date_finish, target_dimension, time_increment, time_window, flag, home_dir, bases):
@@ -61,7 +61,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
     print('num_loops:', num_loops)
 
     base_list = bases.split(',')
-    for base in base_list:
+    for base in tqdm(base_list):
         start_process_time = process_time() #initialize clock per product type
             
         base = base.strip(' ')
@@ -76,7 +76,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
         time_range = TimeRange(date_time_start, timedelta(days = time_increment)) #time_range re-initialized here for each new base name
 
         prev_time, time_range_modified = prev_time_resumer(home_dir, base, time_range)      
-        for t_value in np.arange(num_loops): #this is the main workhorse loop of the program
+        for t_value in tqdm(np.arange(num_loops)): #this is the main workhorse loop of the program
             print('t_value:', t_value)
             print('prev_time:', prev_time)
                 
@@ -127,6 +127,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
         print(f'{base} unreadable_file_ids_product_list_global:', unreadable_file_ids_product_list_global)
 
         data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension)
+        csv_time_uniq_writer(base,home_dir,date_start,date_finish,flag,target_dimension)
         
         end_process_time = process_time()
         time_of_process = end_process_time - start_process_time

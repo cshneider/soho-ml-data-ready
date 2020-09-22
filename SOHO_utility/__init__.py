@@ -493,3 +493,15 @@ def csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_t
     with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}.csv', 'a') as f: #appending lines so not overwriting the file
         writer = csv.writer(f, delimiter='\n')
         writer.writerow(all_time_window_sieved_times_sorted)
+
+"""
+The unique times corresponding to all fits files that passed all tests are written to csv files to control for duplicate times in the output csv in order to match the exact number of fits files.
+"""
+def csv_time_uniq_writer(base,home_dir,date_start,date_finish,flag,target_dimension):
+    with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}.csv', 'r') as ff:
+        csv_reader = csv.reader(ff, delimiter='\n')
+        csv_data = [line for line in csv_reader]
+    csv_uniq_times = list(np.unique(csv_data))
+    with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}_new.csv', 'w') as g:
+        writer_new = csv.writer(g, delimiter='\n')
+        writer_new.writerow(csv_uniq_times)
