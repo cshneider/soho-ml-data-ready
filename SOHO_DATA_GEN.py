@@ -91,21 +91,15 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
                 
                 if len(fetch_indices_product) != 0:
                 
-                    for item in fetch_indices_product:
-                        query_result = product_retriever(base,product_results,item,url_prefix,home_dir)
-                        axis1_product,axis2_product,data_product = readfits(query_result[0])
-                        all_time_window_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list_local = product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, query_result, ind, item, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir)
+                    all_time_window_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list_local = product_distiller(fetch_indices_product, base, all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir)
                 
-                        if holes_product_list: #if image had missing regions (e.g., arising from telemetry errors)
-                            holes_list.append(holes_product_list)
+                    if holes_product_list: #if image had missing regions (e.g., arising from telemetry errors)
+                        holes_list.append(holes_product_list)
                     
-                        if unreadable_file_ids_product_list_local:
-                            unreadable_file_ids_product_list_global.append(unreadable_file_ids_product_list_local)
+                    if unreadable_file_ids_product_list_local:
+                        unreadable_file_ids_product_list_global.append(unreadable_file_ids_product_list_local)
             
-                    if not prev_time:
-                        all_time_window_sieved_times_sorted = np.unique(all_time_window_sieved_times_product_times_modified)
-                    elif prev_time:                    
-                        all_time_window_sieved_times_sorted = np.unique(all_time_window_sieved_times_product_times_modified[1:])
+                    all_time_window_sieved_times_sorted = np.unique(all_time_window_sieved_times_product_times_modified)
                                 
                     print(f'{base} np.unique(all_size_sieved_times_pre):', np.unique(all_size_sieved_times_pre), len(np.unique(all_size_sieved_times_pre)))
                     print(f'{base} list(all_time_window_sieved_times_sorted):', list(all_time_window_sieved_times_sorted), len(all_time_window_sieved_times_sorted))

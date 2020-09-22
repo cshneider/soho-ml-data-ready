@@ -370,37 +370,105 @@ def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir):
 """
 Checks the downloaded fits files for holes and discards them if holes are found. Repeats procedure at each time as long as an image contained missing pixels. 
 """
-def product_distiller(base, axis1_product,axis2_product,data_product, all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, query_result, ind, indiv_ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir):
+def product_distiller(fetch_indices_product, base, all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir):
 
     holes_product_list = []
     unreadable_file_ids_product_list = []
-    
-    if (data_product is not None) and (axis1_product == axis2_product):
 
-        if not holes(query_result[0]): #so if not True; so no holes; can use image
-            reduced_product_data = data_reducer(data_product,flag,target_dimension,axis1_product)
-            time_data = product_results.get_response(0)[int(indiv_ind)]['time']['start']
-            writefits(f'{base}/SOHO_{base}_{time_data}_{target_dimension}', reduced_product_data, home_dir)
+    counter = 0
+    for i,elem in enumerate(fetch_indices_product):
+        indiv_ind = fetch_indices_product[i]
+        query_result = product_retriever(base,product_results,indiv_ind,url_prefix,home_dir)
+        axis1_product, axis2_product, data_product = readfits(query_result[0])
+            
+        if (data_product is not None) and (axis1_product == axis2_product):
+
+            if not holes(query_result[0]): #so if not True; so no holes; can use image
+                reduced_product_data = data_reducer(data_product,flag,target_dimension,axis1_product)
+                time_data = product_results.get_response(0)[int(indiv_ind)]['time']['start']
+                writefits(f'{base}/SOHO_{base}_{time_data}_{target_dimension}', reduced_product_data, home_dir)
+                os.remove(query_result[0]) #delete original downloaded file
+                all_time_window_sieved_times_product_times.append(time_data)
+                all_time_window_sieved_times_product_times_inds_list.append(indiv_ind)                
+
+            elif holes(query_result[0]): #so if True, if there are holes
+                time_data = product_results.get_response(0)[int(indiv_ind)]['time']['start'] 
+                hole_loc = url_prefix + product_results.get_response(0)[int(indiv_ind)]['fileid']                       
+                holes_product_list.append((hole_loc, str(time_data)))
+                hole_time_val = product_results.get_response(0)[int(indiv_ind)]['time']['start']
+            
+                del all_time_window_sieved_times_product_times[counter:]
+            
+                ind_hole_time_val = np.where(np.array(all_size_sieved_times_pre) == hole_time_val)[0][0]
+            
+                del all_time_window_sieved_times_product_times_inds_list[counter:]
+
+                os.remove(query_result[0]) #delete original downloaded file
+                ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == hole_time_val)[0][0]
+                zoomed_time_range = TimeRange(str(hole_time_val),timedelta(hours=time_window))
+
+                fetch_inds_to_try_list = [] 
+                #the zeroth entry didn't have it so that's why plus 1 in the brackets
+                for time_val in all_size_sieved_times_pre[ind_timespickup+1: ind_timespickup + look_ahead]:
+                    if time_val in zoomed_time_range: #this is the next fitting time in the list, slightly less than 2hrs seperated theoretically
+                        ind_next_good_time = np.where(np.array(all_size_sieved_times_pre) == time_val)[0][0]
+                        fetch_indices_next_good = ind[ind_next_good_time]
+                        fetch_inds_to_try_list.append(fetch_indices_next_good)
+
+                for index in fetch_inds_to_try_list:
+                    query_result_next = product_retriever(base,product_results,index,url_prefix,home_dir)
+                    axis1_next_good,axis2_next_good,data_next_good = readfits(query_result_next[0])
+
+                    if (data_next_good is not None) and (axis1_next_good == axis2_next_good):
+
+                        if not holes(query_result_next[0]): #so if not True; so no holes; can use image
+                            reduced_product_data = data_reducer(data_next_good,flag,target_dimension,axis1_next_good)
+                            time_data = product_results.get_response(0)[int(index)]['time']['start']
+                            writefits(f'{base}/SOHO_{base}_{time_data}_{target_dimension}', reduced_product_data, home_dir)
+
+                            all_time_window_sieved_times_product_times.append(time_data) #(time_val) #unsorted time location
+                            all_time_window_sieved_times_product_times_inds_list.append(index)
+                            os.remove(query_result_next[0]) #delete original downloaded file
+                            
+                            indiv_ind_modified_list = []
+                            localized_time_range = TimeRange(str(time_data),timedelta(hours=time_window)).next()
+                            for tval in all_size_sieved_times_pre:
+                                if tval in localized_time_range:
+                                    ind_time = np.where(np.array(all_size_sieved_times_pre) == tval)[0][0]
+                                    indiv_ind_modified = ind[ind_time]
+                                    indiv_ind_modified_list.append(indiv_ind_modified)
+                                    localized_time_range.next() #so should be a single time from each houred time range
+                                    
+                            print('indiv_ind_modified_list:', indiv_ind_modified_list)
+                            counter += 1
+                            fetch_indices_product = list(np.zeros(counter)) + list(indiv_ind_modified_list) #trick to add zeros to maintain same length as original fetch_indices_product
+                            print('fetch_indices_product at final:', fetch_indices_product) #_copy  #cow finish                           
+                            break
+
+                        elif holes(query_result_next[0]): #so if True, if there are holes
+                            time_data = product_results.get_response(0)[int(index)]['time']['start']
+                            hole_loc = url_prefix + product_results.get_response(0)[int(index)]['fileid']
+                            holes_product_list.append((hole_loc, str(time_data)))
+                            os.remove(query_result_next[0])
+                            continue 
+
+                    elif (data_next_good is None) or (axis1_next_good != axis2_next_good):
+                        unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
+                        os.remove(query_result_next[0])
+                        continue #continue the for loop
+
+
+        elif (data_product is None) or (axis1_product != axis2_product):
+            unreadable_file_ids_product_list.append(product_results.get_response(0)[int(indiv_ind)]['fileid'])
+            bad_time_val = product_results.get_response(0)[int(indiv_ind)]['time']['start']
+            del all_time_window_sieved_times_product_times[counter:]            
+            ind_bad_time_val = np.where(np.array(all_size_sieved_times_pre) == bad_time_val)[0][0]
+            del all_time_window_sieved_times_product_times_inds_list[counter:]         
             os.remove(query_result[0]) #delete original downloaded file
+            ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == bad_time_val)[0][0]
+            zoomed_time_range = TimeRange(str(bad_time_val),timedelta(hours=time_window))
 
-        elif holes(query_result[0]): #so if True, if there are holes
-            time_data = product_results.get_response(0)[int(indiv_ind)]['time']['start'] 
-            hole_loc = url_prefix + product_results.get_response(0)[int(indiv_ind)]['fileid']                       
-            holes_product_list.append((hole_loc, str(time_data)))
-            hole_time_val = product_results.get_response(0)[int(indiv_ind)]['time']['start']
-            
-            all_time_window_sieved_times_product_times.remove(hole_time_val)
-            
-            ind_hole_time_val = np.where(np.array(all_size_sieved_times_pre) == hole_time_val)[0][0]
-            
-            all_time_window_sieved_times_product_times_inds_list.remove(ind_hole_time_val)
-
-            os.remove(query_result[0]) #delete original downloaded file
-            ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == hole_time_val)[0][0]
-            zoomed_time_range = TimeRange(str(hole_time_val),timedelta(hours=time_window))
-
-            fetch_inds_to_try_list = [] 
-            #the zeroth entry didn't have it so that's why plus 1 in the brackets
+            fetch_inds_to_try_list = [] #gets reset for each new item
             for time_val in all_size_sieved_times_pre[ind_timespickup+1: ind_timespickup + look_ahead]:
                 if time_val in zoomed_time_range: #this is the next fitting time in the list, slightly less than 2hrs seperated theoretically
                     ind_next_good_time = np.where(np.array(all_size_sieved_times_pre) == time_val)[0][0]
@@ -420,7 +488,21 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
 
                         all_time_window_sieved_times_product_times.append(time_data) #(time_val) #unsorted time location
                         all_time_window_sieved_times_product_times_inds_list.append(index)
-                        os.remove(query_result_next[0]) #delete original downloaded file
+                        os.remove(query_result_next[0])
+                        
+                        indiv_ind_modified_list = []
+                        localized_time_range = TimeRange(str(time_data),timedelta(hours=time_window)).next()
+                        for tval in all_size_sieved_times_pre:
+                            if tval in localized_time_range:
+                                ind_time = np.where(np.array(all_size_sieved_times_pre) == tval)[0][0]
+                                indiv_ind_modified = ind[ind_time]
+                                indiv_ind_modified_list.append(indiv_ind_modified)
+                                localized_time_range.next()
+
+                        print('indiv_ind_modified_list:', indiv_ind_modified_list)
+                        counter += 1
+                        fetch_indices_product = list(np.zeros(counter)) + list(indiv_ind_modified_list) #trick to add zeros to maintain same length as original fetch_indices_product
+                        print('fetch_indices_product at final:', fetch_indices_product) #_copy  #cow finish                           
                         break
 
                     elif holes(query_result_next[0]): #so if True, if there are holes
@@ -430,56 +512,10 @@ def product_distiller(base, axis1_product,axis2_product,data_product, all_size_s
                         os.remove(query_result_next[0])
                         continue 
 
-                elif (data_next_good is None) or (axis1_next_good != axis2_next_good):
+                elif (data_next_good is None) or (axis1_product != axis2_product):
                     unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
                     os.remove(query_result_next[0])
-                    continue #continue the for loop
-
-
-    elif (data_product is None) or (axis1_product != axis2_product):
-        unreadable_file_ids_product_list.append(product_results.get_response(0)[int(indiv_ind)]['fileid'])
-        bad_time_val = product_results.get_response(0)[int(indiv_ind)]['time']['start']
-        all_time_window_sieved_times_product_times.remove(bad_time_val)
-        ind_bad_time_val = np.where(np.array(all_size_sieved_times_pre) == bad_time_val)[0][0]
-        all_time_window_sieved_times_product_times_inds_list.remove(ind_bad_time_val)
-        os.remove(query_result[0]) #delete original downloaded file
-        ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == bad_time_val)[0][0]
-        zoomed_time_range = TimeRange(str(bad_time_val),timedelta(hours=time_window))
-
-        fetch_inds_to_try_list = [] #gets reset for each new item
-        for time_val in all_size_sieved_times_pre[ind_timespickup+1: ind_timespickup + look_ahead]:
-            if time_val in zoomed_time_range: #this is the next fitting time in the list, slightly less than 2hrs seperated theoretically
-                ind_next_good_time = np.where(np.array(all_size_sieved_times_pre) == time_val)[0][0]
-                fetch_indices_next_good = ind[ind_next_good_time]
-                fetch_inds_to_try_list.append(fetch_indices_next_good)
-
-        for index in fetch_inds_to_try_list:
-            query_result_next = product_retriever(base,product_results,index,url_prefix,home_dir)
-            axis1_next_good,axis2_next_good,data_next_good = readfits(query_result_next[0])
-
-            if (data_next_good is not None) and (axis1_next_good == axis2_next_good):
-
-                if not holes(query_result_next[0]): #so if not True; so no holes; can use image
-                    reduced_product_data = data_reducer(data_next_good,flag,target_dimension,axis1_next_good)
-                    time_data = product_results.get_response(0)[int(index)]['time']['start']
-                    writefits(f'{base}/SOHO_{base}_{time_data}_{target_dimension}', reduced_product_data, home_dir)
-
-                    all_time_window_sieved_times_product_times.append(time_data) #(time_val) #unsorted time location
-                    all_time_window_sieved_times_product_times_inds_list.append(index)
-                    os.remove(query_result_next[0])
-                    break
-
-                elif holes(query_result_next[0]): #so if True, if there are holes
-                    time_data = product_results.get_response(0)[int(index)]['time']['start']
-                    hole_loc = url_prefix + product_results.get_response(0)[int(index)]['fileid']
-                    holes_product_list.append((hole_loc, str(time_data)))
-                    os.remove(query_result_next[0])
-                    continue 
-
-            elif (data_next_good is None) or (axis1_product != axis2_product):
-                unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
-                os.remove(query_result_next[0])
-                continue
+                    continue
     
     all_time_window_sieved_times_product_times_modified = all_time_window_sieved_times_product_times
 
