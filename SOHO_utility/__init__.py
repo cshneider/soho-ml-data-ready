@@ -441,8 +441,11 @@ def product_distiller(fetch_indices_product, base, all_size_sieved_times_pre, al
                                     
                             print('indiv_ind_modified_list:', indiv_ind_modified_list)
                             counter += 1
-                            fetch_indices_product = list(np.zeros(counter)) + list(indiv_ind_modified_list) #trick to add zeros to maintain same length as original fetch_indices_product
-                            print('fetch_indices_product at final:', fetch_indices_product) #_copy  #cow finish                           
+                            
+                            if indiv_ind_modified_list:
+                                fetch_indices_product = list(np.zeros(counter)) + list(indiv_ind_modified_list) #trick to add zeros to maintain same length as original fetch_indices_product
+                            else:
+                                fetch_indices_product = list(np.zeros(len(fetch_indices_product)-counter)) + [fetch_indices_product[0]] #this is the correct form which takes into account the actual first index
                             break
 
                         elif holes(query_result_next[0]): #so if True, if there are holes
@@ -501,8 +504,11 @@ def product_distiller(fetch_indices_product, base, all_size_sieved_times_pre, al
 
                         print('indiv_ind_modified_list:', indiv_ind_modified_list)
                         counter += 1
-                        fetch_indices_product = list(np.zeros(counter)) + list(indiv_ind_modified_list) #trick to add zeros to maintain same length as original fetch_indices_product
-                        print('fetch_indices_product at final:', fetch_indices_product) #_copy  #cow finish                           
+                        
+                        if indiv_ind_modified_list:
+                            fetch_indices_product = list(np.zeros(counter)) + list(indiv_ind_modified_list) #trick to add zeros to maintain same length as original fetch_indices_product
+                        else:
+                            fetch_indices_product = list(np.zeros(len(fetch_indices_product)-counter)) + [fetch_indices_product[0]] #this is the correct form which takes into account the actual first index index                        
                         break
 
                     elif holes(query_result_next[0]): #so if True, if there are holes
