@@ -71,12 +71,11 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
             product_results_number = product_results.file_num
             if product_results_number != 0:
                 ind = index_of_sizes(base,product_results)
-                all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, fetch_indices_product = fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time)
+                all_size_sieved_times_pre, fetch_indices_product_orig = fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time)
+                if len(fetch_indices_product_orig) != 0:
                 
-                if len(fetch_indices_product) != 0:
-                
-                    all_time_window_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list_local = product_distiller(fetch_indices_product, base, all_size_sieved_times_pre, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir)
-                
+                    all_time_window_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list_local = product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pre, ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir)
+                    
                     if holes_product_list: #if image had missing regions (e.g., arising from telemetry errors)
                         holes_list.append(holes_product_list)
                     
