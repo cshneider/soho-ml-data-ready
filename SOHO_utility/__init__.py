@@ -146,9 +146,10 @@ def data_reducer(data,flag,target_dimension,axis1_shape):
 """
 Resumes adding fits files if had previous interuption of program. Looks up times present and continues to add files at specified time interval.
 """
-def prev_time_resumer(home_dir, base, time_range_orig): 
+def prev_time_resumer(home_dir, base, time_range_orig, date_time_end): 
 #CAN RE-RUN PROGRAM FROM THE LAST DATE ON WHICH STOPPED; WILL PICK UP THE TIMES THAT ARE PRESENT AND CONTINUE! For both resuming on same day and next day.
-### CHECKS WHETHER THE START DAY THAT ENTERED IS ALREADY CONTAINED IN THE FILES OF PREVIOUS DAY AND START_DATE FROM THAT EXACT TIME! ALSO WORKS IF START ON A NEW DAY AND ARE LOOKING BACK ON THE PREVIOUS DAY
+### CHECKS WHETHER THE START DAY THAT ENTERED IS ALREADY CONTAINED IN THE FILES OF PREVIOUS DAY AND WILL SET START_DATE FROM THAT EXACT TIME! 
+### ALSO WORKS IF START ON A NEW DAY AND ARE LOOKING BACK ON THE PREVIOUS DAY
     
     print('base:', base)
     filepath = home_dir + base + '/'
@@ -168,7 +169,7 @@ def prev_time_resumer(home_dir, base, time_range_orig):
         
         if str(prev_time[0][0:8]) == time_orig:
             time_begin = prev_time[0]
-            time_range = TimeRange(time_begin, time_range_orig.end)
+            time_range = TimeRange(time_begin, date_time_end)
         else:
             time_range = time_range_orig            
     
