@@ -435,6 +435,8 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                                     indiv_ind_modified_list.append(indiv_ind_modified_new)
                                     localized_time_range = TimeRange(str(tval),timedelta(hours=time_window)).next()                                
                                 else:
+                                    ind_time_new = np.where(np.array(all_size_sieved_times_pre) == tval)[0][0]
+                                    indiv_ind_modified_new = ind[ind_time_new]                                    
                                     next_orig_index = np.where(np.array(fetch_indices_product_orig) > np.array(indiv_ind_modified_new))[0]
                                     if len(next_orig_index) != 0:
                                         indiv_ind_modified_new = fetch_indices_product_orig[next_orig_index[0]]
@@ -528,6 +530,8 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                                 indiv_ind_modified_list.append(indiv_ind_modified_new)
                                 localized_time_range = TimeRange(str(tval),timedelta(hours=time_window)).next()                                
                             else:
+                                ind_time_new = np.where(np.array(all_size_sieved_times_pre) == tval)[0][0]
+                                indiv_ind_modified_new = ind[ind_time_new]                                
                                 next_orig_index = np.where(np.array(fetch_indices_product_orig) > np.array(indiv_ind_modified_new))[0]
                                 if len(next_orig_index) != 0:
                                     indiv_ind_modified_new = fetch_indices_product_orig[next_orig_index[0]]
