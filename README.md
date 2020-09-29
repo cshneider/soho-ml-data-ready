@@ -18,6 +18,7 @@ The advantage of using SOHO data is that it has basically covered solar cycles 2
 For querying all 7 data products with a time window of 6 hours and time span of 01.01.1996 - 01.05.2011, program takes ~48 hours to run if input all 7 products.
 
 Include invidual product benchmarks...
+LASCO_C3: 17.396 files took ~7 hours.
 
 SOHO ML Data experiment parameters:
 
@@ -56,4 +57,6 @@ In case of this time range being run as two seperate time ranges as: --date_star
 8. /home/carl/USER/MDI_96m --> all fits files from both runs. 
 Example name of a fits file: /home/USER/MDI_96m/SOHO_MDI_96m_19990406031202_128.fits. The date and time information is combined in the file name (i.e., 1999-04-06 03:12:02 --> 19990406031202 ).
 NOTE: CSV files pruduced from a split time range are not merged. CSV files are provided as more of a check for the USER. They are not used by any successive programs as all the time information is contained in the individual nomenclature  of each fits file.  
+
+With all fits files present, a trick if necessary, to form the HDF5 data cube is to run the program on one date (start and finish date set equal) for which there was no data and the cube will be formed from all pre-existing fits files in the folder.
 
