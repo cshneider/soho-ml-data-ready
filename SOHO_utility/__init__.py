@@ -396,9 +396,6 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                 hole_loc = url_prefix + product_results.get_response(0)[int(indiv_ind)]['fileid']                       
                 holes_product_list.append((hole_loc, str(time_data)))
                 hole_time_val = product_results.get_response(0)[int(indiv_ind)]['time']['start']
-            
-                ind_hole_time_val = np.where(np.array(all_size_sieved_times_pre) == hole_time_val)[0][0]
-            
                 os.remove(query_result[0]) #delete original downloaded file
                 ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == hole_time_val)[0][0]
                 zoomed_time_range = TimeRange(str(hole_time_val),timedelta(hours=time_window))
@@ -485,16 +482,14 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                                 fetch_indices_product = list(fetch_indices_product) + list(fetch_indices_product[-indices_to_go_len:])
                             else:
                                 fetch_indices_product = list(np.zeros(i+1))                               
-                        else:
-                            unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
-                            os.remove(query_result_next[0])
+                        unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
+                        os.remove(query_result_next[0])
                         continue
 
 
         elif (data_product is None) or (axis1_product != axis2_product):
             unreadable_file_ids_product_list.append(product_results.get_response(0)[int(indiv_ind)]['fileid'])
             bad_time_val = product_results.get_response(0)[int(indiv_ind)]['time']['start']
-            ind_bad_time_val = np.where(np.array(all_size_sieved_times_pre) == bad_time_val)[0][0]
             os.remove(query_result[0]) #delete original downloaded file
             ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == bad_time_val)[0][0]
             zoomed_time_range = TimeRange(str(bad_time_val),timedelta(hours=time_window))
@@ -573,16 +568,15 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                             os.remove(query_result_next[0])                        
                         continue 
 
-                elif (data_next_good is None) or (axis1_product != axis2_product):
+                elif (data_next_good is None) or (axis1_next_good != axis2_next_good):
                     if len(fetch_indices_product_orig) > len(fetch_indices_product):
                         indices_to_go_len = len(np.where(indiv_ind < np.array(fetch_indices_product))[0])
                         if indices_to_go_len != 0:
                             fetch_indices_product = list(fetch_indices_product) + list(fetch_indices_product[-indices_to_go_len:])
                         else:
                             fetch_indices_product = list(np.zeros(i+1))                                
-                    else:
-                        unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
-                        os.remove(query_result_next[0])                    
+                    unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
+                    os.remove(query_result_next[0])                    
                     continue
     
     all_time_window_sieved_times_product_times_modified = all_time_window_sieved_times_product_times
