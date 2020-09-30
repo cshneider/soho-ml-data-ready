@@ -18,7 +18,7 @@ The advantage of using SOHO data is that it has basically covered solar cycles 2
 For querying all 7 data products with a time window of 6 hours and time span of 01.01.1996 - 01.05.2011, program takes ~48 hours to run if input all 7 products.
 
 Include invidual product benchmarks...
-LASCO_C3: 17.396 files took ~7 hours.
+LASCO_C3: 17.567 files took ~7 hours.
 
 SOHO ML Data experiment parameters:
 
