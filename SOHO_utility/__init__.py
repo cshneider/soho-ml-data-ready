@@ -436,7 +436,7 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                                 else:
                                     ind_time_new = np.where(np.array(all_size_sieved_times_pre) == tval)[0][0]
                                     indiv_ind_modified_new = ind[ind_time_new]                                    
-                                    next_orig_index = np.where(np.array(fetch_indices_product_orig) > np.array(indiv_ind_modified_new))[0]
+                                    next_orig_index = np.where(np.array(fetch_indices_product_orig) == np.array(indiv_ind_modified_new))[0]
                                     if len(next_orig_index) != 0:
                                         indiv_ind_modified_new = fetch_indices_product_orig[next_orig_index[0]]
                                         ind_next_index = np.where(np.array(ind) == indiv_ind_modified_new)[0][0]
@@ -458,30 +458,13 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                             break
 
                         elif holes(query_result_next[0]): #so if True, if there are holes
-                            if len(fetch_indices_product_orig) > len(fetch_indices_product): 
-                                time_data = product_results.get_response(0)[int(index)]['time']['start']
-                                hole_loc = url_prefix + product_results.get_response(0)[int(index)]['fileid']
-                                holes_product_list.append((hole_loc, str(time_data)))
-                                os.remove(query_result_next[0])
-                                indices_to_go_len = len(np.where(indiv_ind < np.array(fetch_indices_product))[0])
-                                if indices_to_go_len != 0:
-                                    fetch_indices_product = list(fetch_indices_product) + list(fetch_indices_product[-indices_to_go_len:])
-                                else:    
-                                    fetch_indices_product = list(np.zeros(i+1))
-                            else:                        
-                                time_data = product_results.get_response(0)[int(index)]['time']['start']
-                                hole_loc = url_prefix + product_results.get_response(0)[int(index)]['fileid']
-                                holes_product_list.append((hole_loc, str(time_data)))
-                                os.remove(query_result_next[0])
+                            time_data = product_results.get_response(0)[int(index)]['time']['start']
+                            hole_loc = url_prefix + product_results.get_response(0)[int(index)]['fileid']
+                            holes_product_list.append((hole_loc, str(time_data)))
+                            os.remove(query_result_next[0])
                             continue 
 
                     elif (data_next_good is None) or (axis1_next_good != axis2_next_good):
-                        if len(fetch_indices_product_orig) > len(fetch_indices_product):
-                            indices_to_go_len = len(np.where(indiv_ind < np.array(fetch_indices_product))[0])
-                            if indices_to_go_len != 0:
-                                fetch_indices_product = list(fetch_indices_product) + list(fetch_indices_product[-indices_to_go_len:])
-                            else:
-                                fetch_indices_product = list(np.zeros(i+1))                               
                         unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
                         os.remove(query_result_next[0])
                         continue
@@ -529,7 +512,7 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                             else:
                                 ind_time_new = np.where(np.array(all_size_sieved_times_pre) == tval)[0][0]
                                 indiv_ind_modified_new = ind[ind_time_new]                                
-                                next_orig_index = np.where(np.array(fetch_indices_product_orig) > np.array(indiv_ind_modified_new))[0]
+                                next_orig_index = np.where(np.array(fetch_indices_product_orig) == np.array(indiv_ind_modified_new))[0]
                                 if len(next_orig_index) != 0:
                                     indiv_ind_modified_new = fetch_indices_product_orig[next_orig_index[0]]
                                     ind_next_index = np.where(np.array(ind) == indiv_ind_modified_new)[0][0]
@@ -551,30 +534,13 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                         break
 
                     elif holes(query_result_next[0]): #so if True, if there are holes
-                        if len(fetch_indices_product_orig) > len(fetch_indices_product): 
-                            time_data = product_results.get_response(0)[int(index)]['time']['start']
-                            hole_loc = url_prefix + product_results.get_response(0)[int(index)]['fileid']
-                            holes_product_list.append((hole_loc, str(time_data)))
-                            os.remove(query_result_next[0])
-                            indices_to_go_len = len(np.where(indiv_ind < np.array(fetch_indices_product))[0])
-                            if indices_to_go_len != 0:
-                                fetch_indices_product = list(fetch_indices_product) + list(fetch_indices_product[-indices_to_go_len:])
-                            else:    
-                                fetch_indices_product = list(np.zeros(i+1))
-                        else:                        
-                            time_data = product_results.get_response(0)[int(index)]['time']['start']
-                            hole_loc = url_prefix + product_results.get_response(0)[int(index)]['fileid']
-                            holes_product_list.append((hole_loc, str(time_data)))
-                            os.remove(query_result_next[0])                        
+                        time_data = product_results.get_response(0)[int(index)]['time']['start']
+                        hole_loc = url_prefix + product_results.get_response(0)[int(index)]['fileid']
+                        holes_product_list.append((hole_loc, str(time_data)))
+                        os.remove(query_result_next[0])                        
                         continue 
 
                 elif (data_next_good is None) or (axis1_next_good != axis2_next_good):
-                    if len(fetch_indices_product_orig) > len(fetch_indices_product):
-                        indices_to_go_len = len(np.where(indiv_ind < np.array(fetch_indices_product))[0])
-                        if indices_to_go_len != 0:
-                            fetch_indices_product = list(fetch_indices_product) + list(fetch_indices_product[-indices_to_go_len:])
-                        else:
-                            fetch_indices_product = list(np.zeros(i+1))                                
                     unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
                     os.remove(query_result_next[0])                    
                     continue
