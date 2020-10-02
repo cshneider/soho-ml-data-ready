@@ -104,7 +104,6 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
         print(f'{base} unreadable_file_ids_product_list_global:', unreadable_file_ids_product_list_global)
 
         data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension)
-        csv_time_uniq_writer(base,home_dir,date_start,date_finish,flag,target_dimension)
         
         end_process_time = process_time()
         time_of_process = end_process_time - start_process_time

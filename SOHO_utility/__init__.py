@@ -240,10 +240,8 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
 
     data_content_list = []
     for elem in data_files:
-        axdim1,axdim2,data_content,axisnum = readfits(f'{filepath}{elem}')
-        if (axdim1 == axdim2) and ('SOHO' in elem) and (axisnum == 2):
+        if 'SOHO' in elem:
             data_content_list.append(data_content)
-        data_content_list.append(data_content)
 
     if data_content_list:
         data_content_stack = np.stack(data_content_list)
@@ -572,15 +570,3 @@ def csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_t
         writer = csv.writer(f, delimiter='\n')
         writer.writerow(all_time_window_sieved_times_sorted)
 
-"""
-The unique times corresponding to all fits files that passed all tests are written to csv files to control for duplicate times in the output csv in order to match the exact number of fits files.
-"""
-def csv_time_uniq_writer(base,home_dir,date_start,date_finish,flag,target_dimension):
-    if isfile(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}.csv'):
-        with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}.csv', 'r') as ff:
-            csv_reader = csv.reader(ff, delimiter='\n')
-            csv_data = [line for line in csv_reader]
-        csv_uniq_times = list(np.unique(csv_data))
-        with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}_new.csv', 'w') as g:
-            writer_new = csv.writer(g, delimiter='\n')
-            writer_new.writerow(csv_uniq_times)
