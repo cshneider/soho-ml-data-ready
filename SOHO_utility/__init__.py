@@ -34,14 +34,16 @@ def readfits(filename):
         data = ft[0].data
         axis1 = hdr['naxis1']
         axis2 = hdr['naxis2']
+        axisnum = hdr['naxis']
         ft.close()
     
     except ValueError:
         axis1 = 1
         axis2 = 2
+        axisnum = 3
         data = None
             
-    return axis1,axis2,data
+    return axis1, axis2, data, axisnum
 
 """
 Writes a fits file
@@ -180,6 +182,18 @@ def prev_time_resumer(home_dir, base, time_range_orig, date_time_end):
     
     return prev_time, time_range
 
+
+"""
+Assists with final time_start_name_new and time_finish_name_new names below
+"""
+def date_name_maker(date_name):
+
+    date_name_chunks = [date_name[i:i+2] for i in range(0,len(date_name),2)]
+    date_name_new = ''.join(date_name_chunks[0:2])+'-'+'-'.join(date_name_chunks[2:4])+'-'+':'.join(date_name_chunks[4:7])
+    
+    return date_name_new
+
+
 """
 Specified date and time in the naming of both the h5py and csv files
 """
@@ -203,9 +217,9 @@ def data_name_selector(home_dir, base, date_start, date_finish):
             time_start_name = str(time_start_name_pre.split('_')[3])
             time_finish_name = str(time_finish_name_pre.split('_')[3])
         
-        time_start_name_new = time_start_name[0:4] + '-' + time_start_name[4:6] + '-' + time_start_name[6:8] + '-' + time_start_name[8:10] + ':' + time_start_name[10:12] + ':' + time_start_name[12:14]
-        time_finish_name_new = time_finish_name[0:4] + '-' + time_finish_name[4:6] + '-' + time_finish_name[6:8] + '-' + time_finish_name[8:10] + ':' + time_finish_name[10:12] + ':' + time_finish_name[12:14]
-    
+        time_start_name_new = date_name_maker(time_start_name)
+        time_finish_name_new = date_name_maker(time_finish_name)
+        
     else:
         time_start_name_new = date_start 
         time_finish_name_new = date_finish   
@@ -226,8 +240,8 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
 
     data_content_list = []
     for elem in data_files:
-        axdim1,axdim2,data_content = readfits(f'{filepath}{elem}')
-        if (axdim1 == axdim2) and ('SOHO' in elem):
+        axdim1,axdim2,data_content,axisnum = readfits(f'{filepath}{elem}')
+        if (axdim1 == axdim2) and ('SOHO' in elem) and (axisnum == 2):
             data_content_list.append(data_content)
         data_content_list.append(data_content)
 
@@ -379,9 +393,9 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
             break        
         indiv_ind = fetch_indices_product[i]
         query_result = product_retriever(base,product_results,indiv_ind,url_prefix,home_dir)
-        axis1_product, axis2_product, data_product = readfits(query_result[0])
+        axis1_product, axis2_product, data_product, axisnum_product = readfits(query_result[0])
             
-        if (data_product is not None) and (axis1_product == axis2_product):
+        if (data_product is not None) and (axis1_product == axis2_product) and (axisnum_product == 2):
 
             if not holes(query_result[0]): #so if not True; so no holes; can use image
                 reduced_product_data = data_reducer(data_product,flag,target_dimension,axis1_product)
@@ -410,9 +424,9 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
 
                 for index in fetch_inds_to_try_list:
                     query_result_next = product_retriever(base,product_results,index,url_prefix,home_dir)
-                    axis1_next_good,axis2_next_good,data_next_good = readfits(query_result_next[0])
+                    axis1_next_good,axis2_next_good,data_next_good,axisnum_next_good = readfits(query_result_next[0])
 
-                    if (data_next_good is not None) and (axis1_next_good == axis2_next_good):
+                    if (data_next_good is not None) and (axis1_next_good == axis2_next_good) and (axisnum_next_good == 2):
 
                         if not holes(query_result_next[0]): #so if not True; so no holes; can use image
                             reduced_product_data = data_reducer(data_next_good,flag,target_dimension,axis1_next_good)
@@ -464,13 +478,13 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                             os.remove(query_result_next[0])
                             continue 
 
-                    elif (data_next_good is None) or (axis1_next_good != axis2_next_good):
+                    elif (data_next_good is None) or (axis1_next_good != axis2_next_good) or (axisnum_next_good != 2):
                         unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
                         os.remove(query_result_next[0])
                         continue
 
 
-        elif (data_product is None) or (axis1_product != axis2_product):
+        elif (data_product is None) or (axis1_product != axis2_product) or (axisnum_product != 2):
             unreadable_file_ids_product_list.append(product_results.get_response(0)[int(indiv_ind)]['fileid'])
             bad_time_val = product_results.get_response(0)[int(indiv_ind)]['time']['start']
             os.remove(query_result[0]) #delete original downloaded file
@@ -486,9 +500,9 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
 
             for index in fetch_inds_to_try_list:
                 query_result_next = product_retriever(base,product_results,index,url_prefix,home_dir)
-                axis1_next_good,axis2_next_good,data_next_good = readfits(query_result_next[0])
+                axis1_next_good,axis2_next_good,data_next_good,axisnum_next_good = readfits(query_result_next[0])
 
-                if (data_next_good is not None) and (axis1_next_good == axis2_next_good):
+                if (data_next_good is not None) and (axis1_next_good == axis2_next_good) and (axisnum_next_good == 2):
 
                     if not holes(query_result_next[0]): #so if not True; so no holes; can use image
                         reduced_product_data = data_reducer(data_next_good,flag,target_dimension,axis1_next_good)
@@ -540,7 +554,7 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                         os.remove(query_result_next[0])                        
                         continue 
 
-                elif (data_next_good is None) or (axis1_next_good != axis2_next_good):
+                elif (data_next_good is None) or (axis1_next_good != axis2_next_good) or (axisnum_next_good != 2):
                     unreadable_file_ids_product_list.append(product_results.get_response(0)[int(index)]['fileid'])
                     os.remove(query_result_next[0])                    
                     continue
