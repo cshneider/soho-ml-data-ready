@@ -240,6 +240,7 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
 
     data_content_list = []
     for elem in data_files:
+        axdim1,axdim2,data_content,axisnum = readfits(f'{filepath}{elem}')
         if 'SOHO' in elem:
             data_content_list.append(data_content)
 
