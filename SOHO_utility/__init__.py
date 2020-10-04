@@ -356,18 +356,16 @@ def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir):
     
     fileid = product_results.get_response(0)[int(indiv_ind)]['fileid']
     item_wget =  url_prefix + fileid
-    cmd = 'wget' + ' ' + item_wget + ' ' + '-P' + ' ' + f'{home_dir}{base}' #OBTAIN TIMEOUT ISSUE WITH FIDO FETCH! SEEMS THAT WITH WGET CAN CIRCUMVENT IT.
+    cmd = 'wget' + ' ' + '--retry-connrefused' + ' ' + '--waitretry=1' + ' ' + '--read-timeout=20' + ' ' + '--timeout=15' + ' ' + '-t' + ' ' + '0' + ' ' + '--continue' + ' ' + item_wget + ' ' + '-P' + ' ' + f'{home_dir}{base}'     
     args = shlex.split(cmd)    
-    wget_output = str(subprocess.check_output(args)).strip('b')
     
-    while wget_output != "''":
-        print(f'Encountered wget error with exit status {wget_output} for {item_wget}')
-        cmd = 'wget' + ' ' + '--retry-connrefused' + ' ' + '--waitretry=1' + ' ' + '--read-timeout=20' + ' ' + '--timeout=15' + ' ' + '-t' + ' ' + '0' + ' ' + '--continue' + ' ' + item_wget + ' ' + '-P' + ' ' + f'{home_dir}{base}'    
-        args = shlex.split(cmd)
-        wget_output = str(subprocess.check_output(args)).strip('b')
-        if wget_output == "''":
-            break
-        time.sleep(1) 
+    try: 
+        wget_output = subprocess.check_output(args, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as err:
+        print('Error output:\n', err.output) 
+        print('sleep for 15 minutes and then retry command')
+        time.sleep(900)
+        wget_output = subprocess.check_output(args, stderr=subprocess.STDOUT)
     
     downloaded_fileid = fileid.split('/')[-1]
     query_result = [f'{home_dir}{base}/{downloaded_fileid}']
