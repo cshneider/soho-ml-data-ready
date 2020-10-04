@@ -65,5 +65,6 @@ With all fits files present, a trick if necessary, to form the HDF5 data cube is
 
 If interuption occurs (e.g., SSL connection lost from using wget) just enter the next day after the last fits file in the folder and the prev_time_resumer function will fill in the previous day. 
 When the program has been interuped and one is resuming on the next day, there will be another csv file generated accoriding to the new date range that is input. 
-Since an interuption did occur, not all of the times of the .fits files will be contained in the csv file. However, all the actual .fits files will be there.
-###product_retriever currently does not pick up non-zero exit status.
+Since an interuption did occur, not all of the times of the .fits files will be contained in the csv file. However, all the actual 
+.fits files will be there.
+The function product_retriever currently does not perfectly handle non-zero exit status as it retries once after 15 minutes and if this second try doesn't work an error is obtained which ends the program.
