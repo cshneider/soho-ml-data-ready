@@ -16,26 +16,28 @@ The SDO (Solar Dynamics Observatory) mission provides higher resolution and high
 The advantage of using SOHO data is that it has basically covered solar cycles 23 and 24 with all of its products and continues into cyle 25 with most of its products.       
 
 Invidual product benchmarks for querying all 7 data products with a time window of 6 hours and time span of 01.01.1996 - 01.05.2011.
-LASCO_C3: 17.567 files took ~6,5 hours.
-LASCO_C2: 18.295 files took ~7 hours.
-MDI_96m, 18.426 files took ~7 hours.
-EIT195, 17.390 files took ~6,5 hours.
-EIT284, 10.209 files took ~3 hours.
-EIT171, 10.042 files took ~3 hours.
-EIT304, 10.548 files took ~3 hours.
+
+- LASCO_C3: 17.567 files took ~6,5 hours.
+- LASCO_C2: 18.295 files took ~7 hours.
+- MDI_96m, 18.426 files took ~7 hours.
+- EIT195, 17.390 files took ~6,5 hours.
+- EIT284, 10.209 files took ~3 hours.
+- EIT171, 10.042 files took ~3 hours.
+- EIT304, 10.548 files took ~3 hours.
 
 SOHO ML Data experiment parameters:
 
 optional arguments:
-  -h, --help            Show this help message and exit.
-  --date_start time     yyyy-mm-dd, 1996-01-01 is earliest start.
-  --date_finish time    yyyy-mm-dd, 2011-05-01 is recommended latest finish, select a max range of 2 months.
-  --target_dimension    Image size (e.g., 128x128).
-  --time_increment      Days at a time to loop over. max time span must be around 2 months as there is a 10k limit to VSO return search query.
-  --time_window time    Time step in hours.
-  --flag 			    Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool".
-  --home_dir            Home directory. str, e.g., "/home/user/Documents/", need "/" in the end
-  --products            Product types. str, Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284"
+
+- [-h, --help            Show this help message and exit.]  
+- [--date_start time     yyyy-mm-dd, 1996-01-01 is earliest start.]
+- [--date_finish time    yyyy-mm-dd, 2011-05-01 is recommended latest finish, select a max range of 2 months.]
+- [--target_dimension    Image size (e.g., 128x128).]
+- [--time_increment      Days at a time to loop over. max time span must be around 2 months as there is a 10k limit to VSO return search query.]
+- [--time_window time    Time step in hours.]
+- [--flag 			    Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool".]
+- [--home_dir            Home directory. str, e.g., "/home/user/Documents/", need "/" in the end.]
+- [--products            Product types. str, Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284"]
 
 
 Example usages: 
@@ -63,5 +65,6 @@ With all fits files present, a trick if necessary, to form the HDF5 data cube is
 
 If interuption occurs (e.g., SSL connection lost from using wget) just enter the next day after the last fits file in the folder and the prev_time_resumer function will fill in the previous day. 
 When the program has been interuped and one is resuming on the next day, there will be another csv file generated accoriding to the new date range that is input. 
-Since an interuption did occur, not all of the times of the .fits files will be contained in the csv file. However, all the actual .fits files will be there.
-###product_retriever currently does not pick up non-zero exit status.
+Since an interuption did occur, not all of the times of the .fits files will be contained in the csv file. However, all the actual 
+.fits files will be there.
+The function product_retriever currently does not perfectly handle non-zero exit status as it retries once after 15 minutes and if this second try doesn't work an error is obtained which ends the program.
