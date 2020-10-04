@@ -28,15 +28,16 @@ Invidual product benchmarks for querying all 7 data products with a time window 
 SOHO ML Data experiment parameters:
 
 optional arguments:
-  -h, --help            Show this help message and exit.
-  --date_start time     yyyy-mm-dd, 1996-01-01 is earliest start.
-  --date_finish time    yyyy-mm-dd, 2011-05-01 is recommended latest finish, select a max range of 2 months.
-  --target_dimension    Image size (e.g., 128x128).
-  --time_increment      Days at a time to loop over. max time span must be around 2 months as there is a 10k limit to VSO return search query.
-  --time_window time    Time step in hours.
-  --flag 			    Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool".
-  --home_dir            Home directory. str, e.g., "/home/user/Documents/", need "/" in the end
-  --products            Product types. str, Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284"
+
+- [-h, --help            Show this help message and exit.]  
+- [--date_start time     yyyy-mm-dd, 1996-01-01 is earliest start.]
+- [--date_finish time    yyyy-mm-dd, 2011-05-01 is recommended latest finish, select a max range of 2 months.]
+- [--target_dimension    Image size (e.g., 128x128).]
+- [--time_increment      Days at a time to loop over. max time span must be around 2 months as there is a 10k limit to VSO return search query.]
+- [--time_window time    Time step in hours.]
+- [--flag 			    Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool".]
+- [--home_dir            Home directory. str, e.g., "/home/user/Documents/", need "/" in the end.]
+- [--products            Product types. str, Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284"]
 
 
 Example usages: 
