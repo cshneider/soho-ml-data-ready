@@ -318,32 +318,24 @@ The indices returned by this function will be used in the product object returne
 def fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time):
     
     all_size_sieved_times_pre = [] #local list to populate at each loop
-    all_time_window_sieved_times = [] #local list to populate at each loop
+    all_time_window_sieved_times_product_times = []  #local list to populate at each loop
 
     for value in ind:
         all_size_sieved_times_pre.append(product_results.get_response(0)[int(value)]['time']['start'])
     all_size_sieved_times = list(np.unique(all_size_sieved_times_pre))
     all_size_sieved_times_aug = prev_time + all_size_sieved_times #prev_time = [] for the very first loop and [last best time from previous loop] for subsequent loops.
 
-    for i,time_value in enumerate(all_size_sieved_times_aug):
-        local_time_range = TimeRange(str(time_value),timedelta(hours=time_window))
-
-        local_list = []
-        for k,time_val in enumerate(all_size_sieved_times_aug[i:i+look_ahead]):
-            if time_val in local_time_range:
-                local_list.append(time_val)
-        if local_list:
-            for entry in local_list[1:]:
-                all_size_sieved_times_aug.remove(entry)
-            all_time_window_sieved_times.append(local_list[0])
-
-    all_time_window_sieved_times_product_times = list(np.unique(all_time_window_sieved_times)) #np.unique() does np.array() and np.sort()
-
-    if not prev_time: #so if no prev_time (i.e., prev_time = [] at the start of the first loop)    
-        new_inds = [np.where(np.array(all_size_sieved_times_pre) == entry)[0][0] for entry in all_time_window_sieved_times_product_times]      
+    if all_size_sieved_times_aug:
+        if prev_time:
+            local_time_range = TimeRange(all_size_sieved_times_aug[0],timedelta(hours=time_window)).next() #next() is the important difference here.
+        else:
+            local_time_range = TimeRange(all_size_sieved_times_aug[0],timedelta(hours=time_window))       
+        for i,time_value in enumerate(all_size_sieved_times_aug):
+            if time_value in local_time_range:
+                all_time_window_sieved_times_product_times.append(time_value)
+                local_time_range = TimeRange(time_value,timedelta(hours=time_window)).next() #important distinction between this local_time_range and the intializing one is the presence of time_value          
     
-    elif prev_time:
-        new_inds = [np.where(np.array(all_size_sieved_times_pre) == entry)[0][0] for entry in all_time_window_sieved_times_product_times[1:]]                
+    new_inds = [np.where(np.array(all_size_sieved_times_pre) == entry)[0][0] for entry in all_time_window_sieved_times_product_times]
     
     fetch_indices_product = ind[new_inds]
     
