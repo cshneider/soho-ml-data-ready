@@ -17,6 +17,9 @@ The advantage of using SOHO data is that it has basically covered solar cycles 2
 
 Invidual product benchmarks for querying all 7 data products with a time window of 6 hours and time span of 01.01.1996 - 01.05.2011.
 
+{Images from earlier years can appear to have different intensities across the disk as in the case of EIT195 for 1996-01-15-20:51:47.}
+{Perhaps suggest to use images from 1999 onwards for all product types. Check image quality for all products for a sample from 1996, 1997, and 1998.}
+
 - LASCO_C3: 17.567 files took ~6,5 hours.
 - LASCO_C2: 18.295 files took ~7 hours.
 - MDI_96m, 18.426 files took ~7 hours.
