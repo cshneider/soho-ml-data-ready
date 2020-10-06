@@ -334,7 +334,10 @@ def fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time):
             if time_value in local_time_range:
                 all_time_window_sieved_times_product_times.append(time_value)
                 local_time_range = TimeRange(time_value,timedelta(hours=time_window)).next() #important distinction between this local_time_range and the intializing one is the presence of time_value          
-    
+            elif parser.parse(time_value) > local_time_range.end: 
+                local_time_range = TimeRange(time_value,timedelta(hours=time_window)) #important not to have next here.
+            else:
+                continue        
     new_inds = [np.where(np.array(all_size_sieved_times_pre) == entry)[0][0] for entry in all_time_window_sieved_times_product_times]
     
     fetch_indices_product = ind[new_inds]
