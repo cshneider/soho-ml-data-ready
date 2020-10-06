@@ -7,7 +7,7 @@ from time import process_time
 from tqdm import tqdm
 from SOHO_utility import *
 
-def main(date_start, date_finish, target_dimension, time_increment, time_window, flag, home_dir, bases):
+def main(date_start, date_finish, target_dimension, time_window, flag, home_dir, bases):
     
     date_time_pre_start = date_start + '-0000'
     date_time_start= parser.parse(date_time_pre_start)
@@ -20,7 +20,7 @@ def main(date_start, date_finish, target_dimension, time_increment, time_window,
     target_dimension = int(target_dimension)
     print('target_dimension:', target_dimension)
 
-    time_increment = int(time_increment)
+    time_increment = 60
     time_window = float(time_window)
 
     flag = str(flag) 
@@ -116,7 +116,6 @@ if __name__ == '__main__':
     parser_args.add_argument('--date_start', metavar='time', required=True, help='yyyy-mm-dd, 1996-01-01 is earliest start', type = str)
     parser_args.add_argument('--date_finish', metavar='time', required=True, help='yyyy-mm-dd, 2011-05-01 is recommended latest finish, select a max range of 2 months', type = str)
     parser_args.add_argument('--target_dimension', metavar='image size', required=True, help='e.g., 128', type = int)
-    parser_args.add_argument('--time_increment', metavar='days at a time to loop over', required=False, help='max time span must be around 2 months as there is a 10k limit to VSO return search query', default = 60, type = int)
     parser_args.add_argument('--time_window', metavar='time', required=True, help='time step in hours', type = float)
     parser_args.add_argument('--flag', metavar='resize strategy', required=True, help='choose from either "subsample", "interp", "minpool", or "maxpool" ', type = str)
     parser_args.add_argument('--home_dir', metavar='home directory', required=True, help='str, e.g., "/home/user/Documents/", need "/" in the end', type = str)
@@ -127,7 +126,6 @@ if __name__ == '__main__':
         date_start = args.date_start,
         date_finish = args.date_finish,
         target_dimension = args.target_dimension,
-        time_increment = args.time_increment,
         time_window = args.time_window,
         flag = args.flag,
         home_dir = args.home_dir,

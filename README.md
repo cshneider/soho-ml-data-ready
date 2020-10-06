@@ -7,7 +7,7 @@ Next to these product folders, there are compressed (gzipped) HDF5 data cubes wh
 In case of an interuption or running the program seperately on successive time periods, the user can choose the last day of time entry as the point to resume the program. 
 Program is designed to ensure that the same exact times are picked up for the same entered time periods so the results are exactly reproducible.  
 A log file would contain the names of files with holes, including a url path for these images. 
-Due to the VSO limit of 10k returns per query, it is recommended to use a maximum time increment of 60 days. 
+Due to the VSO limit of 10k returns per query, an internal time increment of 60 days is used. 
 
 Two time bars show progress: one time bar is for the completion of a given product type being processed and the other time bar is the progress in terms of all products entered.
 
@@ -33,7 +33,6 @@ optional arguments:
 - [--date_start time     yyyy-mm-dd, 1996-01-01 is earliest start.]
 - [--date_finish time    yyyy-mm-dd, 2011-05-01 is recommended latest finish, select a max range of 2 months.]
 - [--target_dimension    Image size (e.g., 128x128).]
-- [--time_increment      Days at a time to loop over. max time span must be around 2 months as there is a 10k limit to VSO return search query.]
 - [--time_window time    Time step in hours.]
 - [--flag 			    Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool".]
 - [--home_dir            Home directory. str, e.g., "/home/user/Documents/", need "/" in the end.]
@@ -41,9 +40,9 @@ optional arguments:
 
 
 Example usages: 
-1. python nohup SOHO_ML_DATA_GEN.py --products='EIT195,MDI_96m,LASCO_C3' --date_start='1996-01-01' --date_finish='2011-05-01' --target_dimension=128 --time_increment=60 --time_window=6 
+1. python nohup SOHO_ML_DATA_GEN.py --products='EIT195,MDI_96m,LASCO_C3' --date_start='1996-01-01' --date_finish='2011-05-01' --target_dimension=128 --time_window=6 
 --flag=subsample --home_dir=/home/USER/ > LOG.log
-2. python nohup SOHO_ML_DATA_GEN.py --products='MDI_96m' --date_start='1999-04-04' --date_finish='1999-04-06' --target_dimension=128 --time_increment=60 --time_window=6 
+2. python nohup SOHO_ML_DATA_GEN.py --products='MDI_96m' --date_start='1999-04-04' --date_finish='1999-04-06' --target_dimension=128 --time_window=6 
 --flag=subsample --home_dir=/home/USER/ > LOG.log
 
 Example output for MDI_96m with subsample resize strategy to arrive at a final image size of 128x128:
