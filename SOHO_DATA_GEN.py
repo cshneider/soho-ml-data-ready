@@ -93,9 +93,6 @@ def main(date_start, date_finish, target_dimension, time_window, flag, home_dir,
                             
                     csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_time_window_sieved_times_sorted)
                 
-                else:
-                    holes_list = []
-                    unreadable_file_ids_product_list_global = []                 
 
             time_range_modified.next() #Sunpy iterator to go for the next time increment in number of days. There is also time_range_modified.previous() to go backwards in time.    
             #print('time_range_modified next:', time_range_modified)
