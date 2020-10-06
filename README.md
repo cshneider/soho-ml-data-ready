@@ -31,7 +31,7 @@ optional arguments:
 
 - [-h, --help            Show this help message and exit.]  
 - [--date_start time     yyyy-mm-dd, 1996-01-01 is earliest start.]
-- [--date_finish time    yyyy-mm-dd, 2011-05-01 is recommended latest finish, select a max range of 2 months.]
+- [--date_finish time    yyyy-mm-dd, 2011-05-01 is recommended latest finish.]
 - [--target_dimension    Image size (e.g., 128x128).]
 - [--time_window time    Time step in hours.]
 - [--flag 			    Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool".]
