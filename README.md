@@ -19,6 +19,7 @@ The SDO (Solar Dynamics Observatory) mission provides higher resolution and high
 The advantage of using SOHO data is that it has basically covered solar cycles 23 and 24 with all of its products and continues into cyle 25 with most of its products.       
 
 Invidual product benchmarks for querying all 7 data products with a time window of 6 hours and time span of 01.01.1996 - 01.05.2011.
+
 | SOHO Product | No. Files | Time (hrs) |
 | ------------ | --------- | ---------- | 
 | LASCO_C2 | 18.737 | ~7 |
@@ -28,6 +29,7 @@ Invidual product benchmarks for querying all 7 data products with a time window 
 | EIT284   | 11.438 | ~4 |
 | EIT171   | 12.174 | ~4 |
 | EIT304   | 11.279 | ~4 |
+
 Total: ~41 hours
 
 SOHO ML Data experiment parameters:
