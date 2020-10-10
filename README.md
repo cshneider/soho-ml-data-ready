@@ -9,6 +9,9 @@ Program is designed to ensure that the same exact times are picked up for the sa
 A log file would contain the names of files with holes, including a url path for these images. 
 Due to the VSO limit of 10k returns per query, an internal time increment of 60 days is used. 
 
+{Images from earlier years can appear to have different intensities across the disk as in the case of EIT195 for 1996-01-15-20:51:47.}
+{Perhaps suggest to use images from 1999 onwards for all product types. Check image quality for all products for a sample from 1996, 1997, and 1998.}
+
 Two time bars show progress: one time bar is for the completion of a given product type being processed and the other time bar is the progress in terms of all products entered.
 
 SOHO mission data products can be obtained from VSO as follows: for MDI: 1996.05.01 − 2011.04.12, for LASCO: 1995.12.08 till present, for EIT 1996.01.01 to present. 
@@ -17,16 +20,14 @@ The advantage of using SOHO data is that it has basically covered solar cycles 2
 
 Invidual product benchmarks for querying all 7 data products with a time window of 6 hours and time span of 01.01.1996 - 01.05.2011.
 
-{Images from earlier years can appear to have different intensities across the disk as in the case of EIT195 for 1996-01-15-20:51:47.}
-{Perhaps suggest to use images from 1999 onwards for all product types. Check image quality for all products for a sample from 1996, 1997, and 1998.}
-
-- LASCO_C3: 17.567 files took ~6,5 hours.
-- LASCO_C2: 18.295 files took ~7 hours.
+- LASCO_C2: 18.737 files took ~7 hours.
+- LASCO_C3: 18.196 files took ~5 hours.
 - MDI_96m, 18.426 files took ~7 hours.
-- EIT195, 17.390 files took ~6,5 hours.
-- EIT284, 10.209 files took ~3 hours.
-- EIT171, 10.042 files took ~3 hours.
-- EIT304, 10.548 files took ~3 hours.
+- EIT195, 17.521 files took ~6 hours.
+- EIT284, 11.438 files took ~4 hours.
+- EIT171, 12.174 files took ~4 hours.
+- EIT304, 11.279 files took ~4 hours.
+- Total: ~41 hours
 
 SOHO ML Data experiment parameters:
 
