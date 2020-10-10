@@ -19,14 +19,15 @@ The SDO (Solar Dynamics Observatory) mission provides higher resolution and high
 The advantage of using SOHO data is that it has basically covered solar cycles 23 and 24 with all of its products and continues into cyle 25 with most of its products.       
 
 Invidual product benchmarks for querying all 7 data products with a time window of 6 hours and time span of 01.01.1996 - 01.05.2011.
-| SOHO Product &#124; No. Files &#124; Time (hrs) | 
-| LASCO_C2 &#124; 18.737 files took ~7 hours.
-| LASCO_C3 &#124; 18.196 files took ~5 hours.
-| MDI_96m  &#124; 18.426 files took ~7 hours.
-| EIT195   &#124; 17.521 files took ~6 hours.
-| EIT284   &#124; 11.438 files took ~4 hours.
-| EIT171   &#124; 12.174 files took ~4 hours.
-| EIT304   &#124; 11.279 files took ~4 hours.
+| SOHO Product | No. Files | Time (hrs) |
+| ------------ | --------- | ---------- | 
+| LASCO_C2 | 18.737 | ~7 |
+| LASCO_C3 | 18.196 | ~5 |
+| MDI_96m  | 18.426 | ~7 |
+| EIT195   | 17.521 | ~6 |
+| EIT284   | 11.438 | ~4 |
+| EIT171   | 12.174 | ~4 |
+| EIT304   | 11.279 | ~4 |
 Total: ~41 hours
 
 SOHO ML Data experiment parameters:
@@ -37,7 +38,7 @@ optional arguments:
 - [--date_start time     yyyy-mm-dd, 1996-01-01 is earliest start.]
 - [--date_finish time    yyyy-mm-dd, 2011-05-01 is recommended latest finish.]
 - [--target_dimension    Image size (e.g., 128x128).]
-- [--time_window time    Time step in hours.]
+- [--time_window time    Time step in |]
 - [--flag 			    Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool".]
 - [--home_dir            Home directory. str, e.g., "/home/user/Documents/", need "/" in the end.]
 - [--products            Product types. str, Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284"]
