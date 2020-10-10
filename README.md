@@ -26,8 +26,8 @@ Invidual product benchmarks for querying all 7 data products with a time window 
 | LASCO_C3 | 18.196 | ~5 |
 | MDI_96m  | 18.426 | ~7 |
 | EIT195   | 17.521 | ~6 |
-| EIT284   | 11.438 | ~4 |
 | EIT171   | 12.174 | ~4 |
+| EIT284   | 11.438 | ~4 |
 | EIT304   | 11.279 | ~4 |
 
 Total: ~41 hours
