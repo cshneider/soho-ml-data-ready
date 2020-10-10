@@ -22,11 +22,11 @@ Invidual product benchmarks for querying all 7 data products with a time window 
 
 - LASCO_C2: 18.737 files took ~7 hours.
 - LASCO_C3: 18.196 files took ~5 hours.
-- MDI_96m, 18.426 files took ~7 hours.
-- EIT195, 17.521 files took ~6 hours.
-- EIT284, 11.438 files took ~4 hours.
-- EIT171, 12.174 files took ~4 hours.
-- EIT304, 11.279 files took ~4 hours.
+- MDI_96m:  18.426 files took ~7 hours.
+- EIT195:   17.521 files took ~6 hours.
+- EIT284:   11.438 files took ~4 hours.
+- EIT171:   12.174 files took ~4 hours.
+- EIT304:   11.279 files took ~4 hours.
 - Total: ~41 hours
 
 SOHO ML Data experiment parameters:
