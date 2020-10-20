@@ -21,7 +21,6 @@ def main(date_start, date_finish, target_dimension, time_window, flag, home_dir,
     print('target_dimension:', target_dimension)
 
     time_increment = 60
-    time_window = float(time_window)
 
     flag = str(flag) 
     print('flag:', flag)
@@ -32,7 +31,7 @@ def main(date_start, date_finish, target_dimension, time_window, flag, home_dir,
     url_prefix = 'https://seal.nascom.nasa.gov/'
     print('url_prefix:', url_prefix)
 
-    look_ahead = int(np.ceil(time_window*60/10)) #should sufficiently cover all 7 products based on their cadence.
+    look_ahead = int(np.ceil(time_window*60/10.)) #should sufficiently cover all 7 products based on their cadence.
     print('look_ahead:', look_ahead)
 
     diff_start_finish_total_sec = (date_time_end - date_time_start).total_seconds()
@@ -113,7 +112,7 @@ if __name__ == '__main__':
     parser_args.add_argument('--date_start', metavar='time', required=True, help='yyyy-mm-dd, 1996-01-01 is earliest start', type = str)
     parser_args.add_argument('--date_finish', metavar='time', required=True, help='yyyy-mm-dd, 2011-05-01 is recommended latest finish, select a max range of 2 months', type = str)
     parser_args.add_argument('--target_dimension', metavar='image size', required=True, help='e.g., 128', type = int)
-    parser_args.add_argument('--time_window', metavar='time', required=True, help='time step in hours', type = float)
+    parser_args.add_argument('--time_window', metavar='time', required=True, help='time step in hours', type = int)
     parser_args.add_argument('--flag', metavar='resize strategy', required=True, help='choose from either "subsample", "interp", "minpool", or "maxpool" ', type = str)
     parser_args.add_argument('--home_dir', metavar='home directory', required=True, help='str, e.g., "/home/user/Documents/", need "/" in the end', type = str)
     parser_args.add_argument('--products', metavar='product types', required=True, help='str, Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284"', type = str)
