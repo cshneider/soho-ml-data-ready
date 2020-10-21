@@ -17,15 +17,10 @@ def main(date_start, date_finish, target_dimension, time_window, flag, home_dir,
     date_time_end = parser.parse(date_time_pre_end)
     print('date_time_end:', date_time_end)
 
-    target_dimension = int(target_dimension)
-    print('target_dimension:', target_dimension)
-
     time_increment = 60
-
-    flag = str(flag) 
+    
+    print('target_dimension:', target_dimension)
     print('flag:', flag)
-
-    home_dir = str(home_dir)
     print('home_dir:', home_dir)
 
     url_prefix = 'https://seal.nascom.nasa.gov/'
@@ -51,7 +46,7 @@ def main(date_start, date_finish, target_dimension, time_window, flag, home_dir,
         holes_list = []
         unreadable_file_ids_product_list_global = []
     
-        print(f'***{base}***')
+        print(f'{base}')
         base_dir = home_dir + base
         if not os.path.exists(base_dir):
             os.makedirs(base_dir)    
@@ -83,14 +78,14 @@ def main(date_start, date_finish, target_dimension, time_window, flag, home_dir,
             
                     all_time_window_sieved_times_sorted = np.unique(all_time_window_sieved_times_product_times_modified)
                                 
-                    print(f'{base} np.unique(all_size_sieved_times_pre):', np.unique(all_size_sieved_times_pre), len(np.unique(all_size_sieved_times_pre)))
-                    print(f'{base} list(all_time_window_sieved_times_sorted):', list(all_time_window_sieved_times_sorted), len(all_time_window_sieved_times_sorted))
+                    #print(f'{base} np.unique(all_size_sieved_times_pre):', np.unique(all_size_sieved_times_pre), len(np.unique(all_size_sieved_times_pre)))
+                    #print(f'{base} list(all_time_window_sieved_times_sorted):', list(all_time_window_sieved_times_sorted), len(all_time_window_sieved_times_sorted))
 
                     prev_time = [] #reset to empty list
                     if len(all_time_window_sieved_times_sorted) != 0:
                         prev_time.append(all_time_window_sieved_times_sorted[-1]) #append the last good time entry from the previous loop
                             
-                    csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_time_window_sieved_times_sorted)
+                    csv_writer(base,home_dir, date_start, date_finish, flag, time_window, target_dimension, all_time_window_sieved_times_sorted)
                 
 
             time_range_modified.next() #Sunpy iterator to go for the next time increment in number of days. There is also time_range_modified.previous() to go backwards in time.    
@@ -99,7 +94,7 @@ def main(date_start, date_finish, target_dimension, time_window, flag, home_dir,
         print(f'{base} holes_list', holes_list)
         print(f'{base} unreadable_file_ids_product_list_global:', unreadable_file_ids_product_list_global)
 
-        data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension)
+        data_cuber(home_dir, base, date_start, date_finish, flag, time_window, target_dimension)
         
         end_process_time = process_time()
         time_of_process = end_process_time - start_process_time

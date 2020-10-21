@@ -154,7 +154,7 @@ def prev_time_resumer(home_dir, base, time_range_orig, date_time_end):
 ### CHECKS WHETHER THE START DAY THAT ENTERED IS ALREADY CONTAINED IN THE FILES OF PREVIOUS DAY AND WILL SET START_DATE FROM THAT EXACT TIME! 
 ### ALSO WORKS IF START ON A NEW DAY AND ARE LOOKING BACK ON THE PREVIOUS DAY
     
-    print('base:', base)
+    #print('base:', base)
     filepath = home_dir + base + '/'
 
     data_files_pre = [f for f in listdir(filepath) if isfile(join(filepath, f))]
@@ -199,12 +199,12 @@ Specified date and time in the naming of both the h5py and csv files
 """
 def data_name_selector(home_dir, base, date_start, date_finish):
 
-    print('base:', base)
+    #print('base:', base)
     filepath = home_dir + base + '/'
 
     data_files_pre = [f for f in listdir(filepath) if isfile(join(filepath, f))]
     data_files = np.sort(data_files_pre)
-    print('len(data_files):', len(data_files)) 
+    #print('len(data_files):', len(data_files)) 
     
     if len(data_files) != 0: 
         time_start_name_pre = data_files[0]
@@ -229,14 +229,14 @@ def data_name_selector(home_dir, base, date_start, date_finish):
 """
 Generated a compressed h5py data cube from all fits files present in a product folder
 """
-def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
+def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, target_dimension):
 
-    print('base:', base)
+    #print('base:', base)
     filepath = home_dir + base + '/'
 
     data_files_pre = [f for f in listdir(filepath) if isfile(join(filepath, f))]
     data_files = np.sort(data_files_pre) #to have chronological order and to sink order with list of individual product times
-    print('len(data_files):', len(data_files))
+    #print('len(data_files):', len(data_files))
 
     data_content_list = []
     for elem in data_files:
@@ -251,7 +251,7 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, target_dimension):
                   
     time_start_name_new, time_finish_name_new = data_name_selector(home_dir, base, date_start, date_finish)
         
-    data_cube = h5py.File(f'{home_dir}{time_start_name_new}_to_{time_finish_name_new}_{base}_{flag}_{target_dimension}.h5', 'w')
+    data_cube = h5py.File(f'{home_dir}{time_start_name_new}_to_{time_finish_name_new}_{base}_{flag}_{time_window}_{target_dimension}.h5', 'w')
     data_cube.create_dataset(f'{base}_{target_dimension}', data=data_content_stack, compression="gzip")
     data_cube.close()
                             
@@ -283,31 +283,31 @@ def index_of_sizes(base,product_results):
     
     if 'EIT195' in base:
         size_list = [elem['size'] for elem in product_results.get_response(0)[:]]
-        print(np.unique(size_list), len(size_list))
+        #print(np.unique(size_list), len(size_list))
         ind_2059 = np.where(np.array(size_list) == 2059)[0]
         ind_523 = np.where(np.array(size_list) == 523)[0]
-        print(len(ind_2059))
-        print(len(ind_523))
+        #print(len(ind_2059))
+        #print(len(ind_523))
         ind = np.sort(list(ind_2059) + list(ind_523)) #important to sort here since combining two lists!
-        print(len(ind))
+        #print(len(ind))
         
     elif 'MDI' in base:
         size_list = [elem['size'] for elem in product_results.get_response(0)[:]]
-        print(np.unique(size_list), len(size_list))
+        #print(np.unique(size_list), len(size_list))
         ind = np.where(np.array(size_list) == 4115.0)[0]
-        print(len(ind))        
+        #print(len(ind))        
         
     elif 'LASCO' in base:
         size_list = [int(np.ceil(elem['size'] / 100.0))*100 for elem in product_results.get_response(0)[:]]
-        print(np.unique(size_list), len(size_list))
+        #print(np.unique(size_list), len(size_list))
         ind = np.where(np.array(size_list) == 2100.0)[0] 
-        print(len(ind))
+        #print(len(ind))
         
     elif any([x in base for x in matches]):
         size_list = [elem['size'] for elem in product_results.get_response(0)[:]]
-        print(np.unique(size_list), len(size_list))
+        #print(np.unique(size_list), len(size_list))
         ind = np.where(np.array(size_list) == 2059)[0]        
-        print(len(ind))
+        #print(len(ind))
         
     return ind
    
@@ -456,7 +456,7 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                                         indiv_ind_modified_list.append(indiv_ind_modified_new)
                                         localized_time_range = TimeRange(str(tval),timedelta(hours=time_window)).next()
                                                                         
-                            print('indiv_ind_modified_list:', indiv_ind_modified_list)
+                            #print('indiv_ind_modified_list:', indiv_ind_modified_list)
                             
                             if indiv_ind_modified_list:
                                 fetch_indices_product = list(np.zeros(i+1)) + list(indiv_ind_modified_list)                            
@@ -532,7 +532,7 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                                     indiv_ind_modified_list.append(indiv_ind_modified_new)
                                     localized_time_range = TimeRange(str(tval),timedelta(hours=time_window)).next()
 
-                        print('indiv_ind_modified_list:', indiv_ind_modified_list)
+                        #print('indiv_ind_modified_list:', indiv_ind_modified_list)
                         
                         if indiv_ind_modified_list:
                             fetch_indices_product = list(np.zeros(i+1)) + list(indiv_ind_modified_list)
@@ -560,8 +560,8 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
 """
 The times corresponding to all fits files that passed all tests are written to csv files.
 """
-def csv_writer(base,home_dir,date_start,date_finish,flag,target_dimension, all_time_window_sieved_times_sorted):
-    with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{target_dimension}.csv', 'a') as f: #appending lines so not overwriting the file
+def csv_writer(base,home_dir,date_start,date_finish,flag, time_window, target_dimension, all_time_window_sieved_times_sorted):
+    with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{time_window}_{target_dimension}.csv', 'a') as f: #appending lines so not overwriting the file
         writer = csv.writer(f, delimiter='\n')
         writer.writerow(all_time_window_sieved_times_sorted)
 

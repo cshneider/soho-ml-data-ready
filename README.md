@@ -41,7 +41,7 @@ optional arguments:
 - [--date_finish time    yyyy-mm-dd, 2011-05-01 is recommended latest finish.]
 - [--target_dimension    Image size (e.g., 128x128).]
 - [--time_window time    Time step in |]
-- [--flag 			    Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool".]
+- [--flag 			Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool".]
 - [--home_dir            Home directory. str, e.g., "/home/user/Documents/", need "/" in the end.]
 - [--products            Product types. str, Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284"]
 
@@ -53,16 +53,16 @@ Example usages:
 --flag=subsample --home_dir=/home/USER/ > LOG.log
 
 Example output for MDI_96m with subsample resize strategy to arrive at a final image size of 128x128:
-1. /home/USER/1999-04-04-00:00:02_to_1999-04-06-22:24:02_MDI_96m_subsample_128.h5 --> all fits files found, chronologically ordered with start time (first slice of cube) to finish time (last slice of cube). nomenclature contains exact time of start and finish fits files composing the cube together with the product type of the cube, the downscaling strategy and the final image dimension.
-2. /home/USER/1999-04-04_to_1999-04-06_MDI_96m_times_subsample_128.csv --> contains initial times of all fits files; may have duplicate times present. 
+1. /home/USER/1999-04-04-00:00:02_to_1999-04-06-22:24:02_MDI_96m_subsample_6_128.h5 --> all fits files found, chronologically ordered with start time (first slice of cube) to finish time (last slice of cube). nomenclature contains exact time of start and finish fits files composing the cube together with the product type of the cube, the downscaling strategy and the final image dimension.
+2. /home/USER/1999-04-04_to_1999-04-06_MDI_96m_times_subsample_6_128.csv --> contains initial times of all fits files; may have duplicate times present. 
 3. /home/USER/MDI_96m --> contains all *.fits files. Fits files never occur in duplicate.
 
 In case of this time range being run as two seperate time ranges as: --date_start='1999-04-04' --date_finish='1999-04-05' followed by --date_start='1999-04-05' --date_finish='1999-04-06' one would obtain: 
-1. /home/carl/USER/1999-04-04-00:00:02_to_1999-04-05-20:48:02_MDI_96m_subsample_128.h5 --> individual HDF5 file for that run
-2. /home/carl/USER/1999-04-04-00:00:02_to_1999-04-06-03:12:02_MDI_96m_subsample_128.h5 --> individual HDF5 file for that run
-3. /home/carl/USER/1999-04-04-00:00:02_to_1999-04-06-22:24:02_MDI_96m_subsample_128.h5 --> combined HDF5 file from both days when second run has finished as this picks up all the fits files present in the folder.
-4. /home/carl/USER/1999-04-04_to_1999-04-05_MDI_96m_times_subsample_128.csv --> individual CSV file for that run
-5. /home/carl/USER/1999-04-05_to_1999-04-06_MDI_96m_times_subsample_128.csv --> individual CSV file for that run
+1. /home/carl/USER/1999-04-04-00:00:02_to_1999-04-05-20:48:02_MDI_96m_subsample_6_128.h5 --> individual HDF5 file for that run
+2. /home/carl/USER/1999-04-04-00:00:02_to_1999-04-06-03:12:02_MDI_96m_subsample_6_128.h5 --> individual HDF5 file for that run
+3. /home/carl/USER/1999-04-04-00:00:02_to_1999-04-06-22:24:02_MDI_96m_subsample_6_128.h5 --> combined HDF5 file from both days when second run has finished as this picks up all the fits files present in the folder.
+4. /home/carl/USER/1999-04-04_to_1999-04-05_MDI_96m_times_subsample_6_128.csv --> individual CSV file for that run
+5. /home/carl/USER/1999-04-05_to_1999-04-06_MDI_96m_times_subsample_6_128.csv --> individual CSV file for that run
 6. /home/carl/USER/MDI_96m --> all fits files from both runs. 
 Example name of a fits file: /home/USER/MDI_96m/SOHO_MDI_96m_19990406031202_128.fits. The date and time information is combined in the file name (i.e., 1999-04-06 03:12:02 --> 19990406031202 ).
 NOTE: CSV files pruduced from a split time range are not merged. CSV files are provided as more of a check for the USER. They are not used by any successive programs as all the time information is contained in the individual nomenclature  of each fits file.  
@@ -74,3 +74,5 @@ When the program has been interuped and one is resuming on the next day, there w
 Since an interuption did occur, not all of the times of the .fits files will be contained in the csv file. However, all the actual 
 .fits files will be there.
 The function product_retriever currently does not perfectly handle non-zero exit status as it retries once after 15 minutes and if this second try doesn't work an error is obtained which ends the program.
+
+{Include description of companion script here to sync the times between the data products}
