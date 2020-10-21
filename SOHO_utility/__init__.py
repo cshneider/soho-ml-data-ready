@@ -560,7 +560,7 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
 """
 The times corresponding to all fits files that passed all tests are written to csv files.
 """
-def csv_writer(base,home_dir,date_start,date_finish,flag, time_window, target_dimension, all_time_window_sieved_times_sorted):
+def csv_writer(base, home_dir, date_start, date_finish, flag, time_window, target_dimension, all_time_window_sieved_times_sorted):
     with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{time_window}_{target_dimension}.csv', 'a') as f: #appending lines so not overwriting the file
         writer = csv.writer(f, delimiter='\n')
         writer.writerow(all_time_window_sieved_times_sorted)
