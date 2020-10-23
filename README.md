@@ -116,13 +116,13 @@ Nomenclature reflects original time step and current time step in case have subs
 SOHO_PRODUCT_SYNC experiment parameters:
 | Input 			   | Description | 
 | ---------------------| ---------------------------------------------------- |
-|-h, --help            | Show this help message and exit. |  
-|--date_start	        | yyyy-mm-dd, 1996-01-01 is earliest start. |
-|--date_finish		   | yyyy-mm-dd, 2011-05-01 is recommended latest finish. |
-|--time_step		   | Integer time step in hours. |
-|--home_dir            | Home directory, e.g., "/home/user/Documents/", need "/" in the end. |
-|--option 		   | Are *.fits files present? Y/N or y/n. |
-|--products            | Product types to synchronize. Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284". |
+| -h, --help           | Show this help message and exit. |  
+| --date_start	        | yyyy-mm-dd, 1996-01-01 is earliest start. |
+| --date_finish	   | yyyy-mm-dd, 2011-05-01 is recommended latest finish. |
+| --time_step		   | Integer time step in hours. |
+| --home_dir           | Home directory, e.g., "/home/user/Documents/", need "/" in the end. |
+| --option 		   | Are *.fits files present? Y/N or y/n. |
+| --products           | Product types to synchronize. Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284". |
 
 Example usage:
 If one had run SOHO_DATA_GEN.py with the following inputs: --products='MDI_96m, LASCO_C3, EIT284, EIT195, LASCO_C2, EIT304, EIT171', --date_start='1996-01-01', --date_finish='2011-05-01', and time_window=6, (the --flag and --target_dimension are not important in this example) then one could do the following to sync a subset of the original products within a subset of the original time range:
