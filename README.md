@@ -61,17 +61,17 @@ Example usages:
 ```
 
 Example output for MDI_96m with subsample resize strategy to arrive at a final image size of 128x128:
-- [1. /home/USER/1999-04-04-00:00:02_to_1999-04-06-22:24:02_MDI_96m_subsample_6_128.h5 --> all fits files found, chronologically ordered with start time (first slice of cube) to finish time (last slice of cube). nomenclature contains exact time of start and finish fits files composing the cube together with the product type of the cube, the downscaling strategy and the final image dimension.]
-- [2. /home/USER/1999-04-04_to_1999-04-06_MDI_96m_times_subsample_6_128.csv --> contains initial times of all fits files; may have duplicate times present.] 
-- [3. /home/USER/MDI_96m --> contains all *.fits files. Fits files never occur in duplicate.]
+- /home/USER/1999-04-04-00:00:02_to_1999-04-06-22:24:02_MDI_96m_subsample_6_128.h5 --> all fits files found, chronologically ordered with start time (first slice of cube) to finish time (last slice of cube). nomenclature contains exact time of start and finish fits files composing the cube together with the product type of the cube, the downscaling strategy and the final image dimension.
+- /home/USER/1999-04-04_to_1999-04-06_MDI_96m_times_subsample_6_128.csv --> contains initial times of all fits files; may have duplicate times present.
+- /home/USER/MDI_96m --> contains all *.fits files. Fits files never occur in duplicate.
 
 In case of this time range being run as two seperate time ranges as: --date_start='1999-04-04' --date_finish='1999-04-05' followed by --date_start='1999-04-05' --date_finish='1999-04-06' one would obtain: 
-- [1. /home/USER/1999-04-04-00:00:02_to_1999-04-05-20:48:02_MDI_96m_subsample_6_128.h5 --> individual HDF5 file for that run]
-- [2. /home/USER/1999-04-04-00:00:02_to_1999-04-06-03:12:02_MDI_96m_subsample_6_128.h5 --> individual HDF5 file for that run]
-- [3. /home/USER/1999-04-04-00:00:02_to_1999-04-06-22:24:02_MDI_96m_subsample_6_128.h5 --> combined HDF5 file from both days when second run has finished as this picks up all the fits files present in the folder.]
-- [4. /home/USER/1999-04-04_to_1999-04-05_MDI_96m_times_subsample_6_128.csv --> individual CSV file for that run]
-- [5. /home/USER/1999-04-05_to_1999-04-06_MDI_96m_times_subsample_6_128.csv --> individual CSV file for that run]
-- [6. /home/USER/MDI_96m --> all fits files from both runs.]
+- /home/USER/1999-04-04-00:00:02_to_1999-04-05-20:48:02_MDI_96m_subsample_6_128.h5 --> individual HDF5 file for that run
+- /home/USER/1999-04-04-00:00:02_to_1999-04-06-03:12:02_MDI_96m_subsample_6_128.h5 --> individual HDF5 file for that run
+- /home/USER/1999-04-04-00:00:02_to_1999-04-06-22:24:02_MDI_96m_subsample_6_128.h5 --> combined HDF5 file from both days when second run has finished as this picks up all the fits files present in the folder.
+- /home/USER/1999-04-04_to_1999-04-05_MDI_96m_times_subsample_6_128.csv --> individual CSV file for that run
+- /home/USER/1999-04-05_to_1999-04-06_MDI_96m_times_subsample_6_128.csv --> individual CSV file for that run
+- /home/USER/MDI_96m --> all fits files from both runs.
 
 Example name of a fits file: /home/USER/MDI_96m/SOHO_MDI_96m_19990406031202_128.fits. The date and time information is combined in the file name (i.e., 1999-04-06 03:12:02 --> 19990406031202 ).
 NOTE: CSV files pruduced from a split time range are not merged. CSV files are provided as more of a check for the USER. They are not used by any successive programs as all the time information is contained in the individual nomenclature  of each fits file.  
@@ -116,15 +116,13 @@ Nomenclature reflects original time step and current time step in case have subs
 SOHO_PRODUCT_SYNC experiment parameters:
 | Input 			   | Description | 
 | ---------------------| ---------------------------------------------------- |
-|-h, --help		   |	Show this help message and exit. |  
-|--date_start	        | yyyy-mm-dd, 1996-01-01 is earliest start. |
 |-h, --help            | Show this help message and exit. |  
 |--date_start	        | yyyy-mm-dd, 1996-01-01 is earliest start. |
 |--date_finish		   | yyyy-mm-dd, 2011-05-01 is recommended latest finish. |
-|--time_step		   | Integer time step in hours |
+|--time_step		   | Integer time step in hours. |
 |--home_dir            | Home directory, e.g., "/home/user/Documents/", need "/" in the end. |
 |--option 		   | Are *.fits files present? Y/N or y/n. |
-|--products            | Product types to synchronize. Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284" |
+|--products            | Product types to synchronize. Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284". |
 
 Example usage:
 If one had run SOHO_DATA_GEN.py with the following inputs: --products='MDI_96m, LASCO_C3, EIT284, EIT195, LASCO_C2, EIT304, EIT171', --date_start='1996-01-01', --date_finish='2011-05-01', and time_window=6, (the --flag and --target_dimension are not important in this example) then one could do the following to sync a subset of the original products within a subset of the original time range:
@@ -134,10 +132,10 @@ If one had run SOHO_DATA_GEN.py with the following inputs: --products='MDI_96m, 
 
 Example output:
 Besides the product folders, h5 files, and csv files already present, the following new products would be produced.
-- [1. 2005-01-01_to_2006-01-01_MDI_96m_6_12_128_sync.h5]
-- [2. 2005-01-01_to_2006-01-01_EIT284_6_12_128_sync.h5]
-- [3. 2005-01-01_to_2006-01-01_LASCO_C3_6_12_128_sync.h5]
-- [4. 2005-01-01_to_2006-01-01_MDI_96m_6_12_128_times_sync.csv]
-- [5. 2005-01-01_to_2006-01-01_EIT284_6_12_128_times_sync.csv]
-- [6. 2005-01-01_to_2006-01-01_LASCO_C3_6_12_128_times_sync.csv]
+- 2005-01-01_to_2006-01-01_MDI_96m_6_12_128_sync.h5
+- 2005-01-01_to_2006-01-01_EIT284_6_12_128_sync.h5
+- 2005-01-01_to_2006-01-01_LASCO_C3_6_12_128_sync.h5
+- 2005-01-01_to_2006-01-01_MDI_96m_6_12_128_times_sync.csv
+- 2005-01-01_to_2006-01-01_EIT284_6_12_128_times_sync.csv
+- 2005-01-01_to_2006-01-01_LASCO_C3_6_12_128_times_sync.csv
 
