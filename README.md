@@ -114,6 +114,7 @@ Nomenclature reflects original time step and current time step in case have subs
 """
 
 SOHO_PRODUCT_SYNC experiment parameters:
+
 | Input 			   | Description | 
 | ---------------------| ---------------------------------------------------- |
 | -h, --help           | Show this help message and exit. |  
