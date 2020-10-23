@@ -36,16 +36,17 @@ Invidual product benchmarks for querying all 7 data products with a time window 
 Total: ~41 hours
 
 SOHO_DATA_GEN experiment parameters:
-| Input | Description | 
-| ----- | ----- |
+
+| Input 			   | Description | 
+| ---------------------| ---------------------------------------------------- |
 | -h, --help           |	Show this help message and exit. |  
-| --date_start         |	yyyy-mm-dd, 1996-01-01 is earliest start.]
-| --date_finish        |	yyyy-mm-dd, 2011-05-01 is recommended latest finish.|
-| --target_dimension   |	Image size (e.g., 128x128).|
-| --time_window	   | Integer time step in hours|
-| --flag 			   | Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool".|
-| --home_dir           | Home directory, e.g., "/home/user/Documents/", need "/" in the end.|
-| --products           | Product types. Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284"|
+| --date_start         |	yyyy-mm-dd, 1996-01-01 is earliest start. |
+| --date_finish        |	yyyy-mm-dd, 2011-05-01 is recommended latest finish. |
+| --target_dimension   |	Image size (e.g., 128x128). |
+| --time_window	   | Integer time step in hours |
+| --flag 			   | Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool". |
+| --home_dir           | Home directory, e.g., "/home/user/Documents/", need "/" in the end. |
+| --products           | Product types. Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284". |
 
 Example usages: 
 
