@@ -113,7 +113,7 @@ Nomenclature reflects original time step and current time step in case have subs
 
 SOHO_PRODUCT_SYNC experiment parameters:
 ```python
-- [-h, --help            Show this help message and exit.]  
+- [-h, --help			Show this help message and exit.]  
 - [--date_start	     yyyy-mm-dd, 1996-01-01 is earliest start.]
 - [--date_finish		yyyy-mm-dd, 2011-05-01 is recommended latest finish.]
 - [--time_step		    	Integer time step in hours]
