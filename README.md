@@ -1,6 +1,6 @@
 # SOHO ML Data Ready
 
-### SOHO_DATA_GEN.py
+## SOHO_DATA_GEN.py
 This program focuses entirely on data products obtained from the NASA SOHO (Solar and Heliospheric Observatory) mission: MDI (Michelson Doppler Imager) @ 96 minute cadence, 
 LASCO (Large Angle and Spectrometric Coronagraph): C2 (1.5 - 6 solar radii) and C3 (3.7 to 30 solar radii), and EIT (Extreme ultraviolet Imaging Telescope) @ 171, 195, 284, 304 Angstroms).
 This program returns up to 7 folders, as specified by the user, named after their resective products which are queried with SunPy's Fido (Federated Internet Data Obtainer), in this case, specifically from the VSO's (Virtual Solar Observatory) SDAC (Solar Data Analysis Center, NASA/Goddard) provider. 
@@ -76,7 +76,7 @@ Since an interuption did occur, not all of the times of the .fits files will be 
 .fits files will be there.
 The function product_retriever currently does not perfectly handle non-zero exit status as it retries once after 15 minutes and if this second try doesn't work an error is obtained which ends the program.
 
-### SOHO_PRODUCT_SYNC.py
+## SOHO_PRODUCT_SYNC.py
 This is the companion script to SOHO_DATA_GEN.py to syncronize the times between the data products once they have all been downloaded from the VSO.
 The program outputs two new pairs of .h5 
 
