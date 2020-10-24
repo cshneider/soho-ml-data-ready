@@ -137,6 +137,6 @@ In addition to the product folders, h5 files, and .csv files already present, th
 - 1999-01-01_to_2011-05-01_EIT284_6_12_128_times_sync.csv
 - 1999-01-01_to_2011-05-01_LASCO_C3_6_12_128_times_sync.csv
 
-Run time: ~8,5 min. (A bit slower than it takes light to reach Earth from the Sun). 
+Run time: ~8.5 min. (A bit slower than it takes light to reach Earth from the Sun). 
 
 These final *sync.h5 data cubes are now ready for input into an ML architecture. 
