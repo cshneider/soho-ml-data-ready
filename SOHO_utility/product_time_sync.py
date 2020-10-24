@@ -248,7 +248,8 @@ OUTPUTS DATA CUBES FOR EACH SPECIFIED PRODUCT. THESE CUBES ARE THE REDUCED VERSI
 def cube_sync_maker(home_dir, base, cube_data, cube_dim, ind_start, ind_end, synch_time_inds_mod, date_start, date_finish, time_step_prev, time_step):
 
      cube_data_mod_pre = cube_data[ind_start:ind_end+1]
-     cube_data_mod = np.array([cube_data_mod_pre[i] for i in synch_time_inds_mod])
+     cube_data_mod_pre = np.array([cube_data_mod_pre[i] for i in synch_time_inds_mod])
+     cube_data_mod = cube_data_mod_pre.astype('int16')
      
      cube_sync = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{time_step_prev}_{time_step}_{cube_dim}_sync.h5', 'w')
      cube_sync.create_dataset(f'{base}_{cube_dim}', data=cube_data_mod, compression="gzip")
