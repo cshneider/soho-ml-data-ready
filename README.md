@@ -122,21 +122,22 @@ SOHO_PRODUCT_SYNC experiment parameters:
 | --products           | Product types to synchronize. Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284". |
 
 Example usage:
-If one had run SOHO_DATA_GEN.py with the following inputs: --products='MDI_96m, LASCO_C3, EIT284, EIT195, LASCO_C2, EIT304, EIT171', --date_start='1996-01-01', --date_finish='2011-05-01', and time_window=6, (the --flag and --target_dimension are not important in this example) then one could do the following to sync a subset of the original products within a subset of the original time range:
+If one had run SOHO_DATA_GEN.py with the following inputs: --products='MDI_96m, LASCO_C3, EIT284, EIT195, LASCO_C2, EIT304, EIT171', --date_start='1996-01-01', --date_finish='2011-05-01', and time_window=6, (the --flag and --target_dimension are not important in this example) then one could do the following to sync a subset of the original products within a subset of the original time range and with a coarser time sampling of 12 hrs instead of 6 hrs:
 ```python
-1. python nohup SOHO_PRODUCT_SYNC.py --date_start=1999-01-01 --date_finish=2011-05-01 --time_step=12 --home_dir=/home/USER/ --option=Y --products='LASCO_C2, EIT195, MDI_96m' > LOG.log
+1. python nohup SOHO_PRODUCT_SYNC.py --date_start=1999-01-01 --date_finish=2011-05-01 --time_step=12 --home_dir=/home/USER/ --option=Y --products='MDI_96m, EIT195, LASCO_C2' > LOG.log
 ```
 
 Example output:
 
 In addition to the product folders, h5 files, and .csv files already present, the following new products would be produced:
 - 1999-01-01_to_2011-05-01_MDI_96m_6_12_128_sync.h5
-- 1999-01-01_to_2011-05-01_EIT284_6_12_128_sync.h5
-- 1999-01-01_to_2011-05-01_LASCO_C3_6_12_128_sync.h5
+- 1999-01-01_to_2011-05-01_EIT195_6_12_128_sync.h5
+- 1999-01-01_to_2011-05-01_LASCO_C2_6_12_128_sync.h5
 - 1999-01-01_to_2011-05-01_MDI_96m_6_12_128_times_sync.csv
-- 1999-01-01_to_2011-05-01_EIT284_6_12_128_times_sync.csv
-- 1999-01-01_to_2011-05-01_LASCO_C3_6_12_128_times_sync.csv
+- 1999-01-01_to_2011-05-01_EIT195_6_12_128_times_sync.csv
+- 1999-01-01_to_2011-05-01_LASCO_C2_6_12_128_times_sync.csv
 
 Run time: ~8.5 min. (A bit slower than it takes light to reach Earth from the Sun). 
+Each of the *sync.csv files contains 6.336 entries.
 
 These final *sync.h5 data cubes are now ready for input into an ML architecture. 
