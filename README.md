@@ -8,7 +8,7 @@ Each folder contains .fits (FITS = flexible Image Transport System) files which 
 Next to these product folders, there are compressed (gzipped) HDF5 data cubes which are the, respectively, chronologically stacked data of all of the respective folder's .fits files that correspond to the .csv (comma seperated value) files generated with all the remaining good times of the downloaded .fits files. 
 In case of an interuption or running the program seperately on successive time periods, the user can choose the last day of time entry as the point to resume the program. 
 Program is designed to ensure that the same exact times are picked up for the same entered time periods so the results are exactly reproducible.  
-A log file would contain the names of files with holes, including a url path for these images. 
+A log file would contain the names of files with holes or missing data, including a clickable url path for these images that would enable the user to download such images. 
 Due to the VSO limit of 10k returns per query, an internal time increment of 60 days is used. 
 
 Note:
@@ -48,6 +48,10 @@ SOHO_DATA_GEN experiment parameters:
 | --home_dir           | Home directory, e.g., "/home/user/Documents/", need "/" in the end. |
 | --products           | Product types. Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284". |
 
+Note:
+2011-05-01 is recommended as the latest finish date only in the event that the user wishes to include MDI images in the analysis. 
+As described above, EIT and LASCO products continue to the present day. 
+
 Example usages: 
 
 ```python 
@@ -80,9 +84,11 @@ With all .fits files present, a trick if necessary, to form the HDF5 data cube i
 
 If interuption occurs (e.g., SSL connection lost from using wget) just enter the next day after the last .fits file in the folder and the prev_time_resumer function will fill in the previous day. 
 When the program has been interuped and one is resuming on the next day, there will be another .csv file generated accoriding to the new date range that is input. 
-Since an interuption did occur, not all of the times of the .fits files will be contained in the .csv file. However, all the actual 
-.fits files will be there.
+Since an interuption did occur, not all of the times of the .fits files will be contained in the .csv file. However, all the actual .fits files will be there.
 The function product_retriever currently does not perfectly handle non-zero exit status as it retries once after 15 minutes and if this second try doesn't work an error is obtained which ends the program.
+However, this method appears to be sufficiently robust.
+
+Note: As an alternative to wget one can also use include Fido.fetch().
 
 ## SOHO_PRODUCT_SYNC.py
 This is the companion script to SOHO_DATA_GEN.py to synchronize the times between the specified data products once they have all been downloaded from the VSO and pre-processed.
