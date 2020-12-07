@@ -33,7 +33,7 @@ Individual product benchmarks for querying all 7 data products with a time windo
 | EIT284   | 11.438 | ~4 |
 | EIT304   | 11.279 | ~4 |
 
-Total: ~41 hours
+Total: ~37 hours
 
 SOHO_DATA_GEN experiment parameters:
 
