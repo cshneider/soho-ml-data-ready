@@ -55,12 +55,12 @@ As described above, EIT and LASCO products continue to the present day.
 Example usages: 
 
 ```python 
-1. python nohup SOHO_ML_DATA_GEN.py --products='EIT195, MDI_96m, LASCO_C3' --date_start='1996-01-01' --date_finish='2011-05-01' --target_dimension=128 --time_window=6 
+1. python nohup SOHO_DATA_GEN.py --products='EIT195, MDI_96m, LASCO_C3' --date_start='1996-01-01' --date_finish='2011-05-01' --target_dimension=128 --time_window=6 
 --flag=subsample --home_dir=/home/USER/ > LOG.log
 ```
 
 ```python 
-2. python nohup SOHO_ML_DATA_GEN.py --products='MDI_96m' --date_start='1999-04-04' --date_finish='1999-04-06' --target_dimension=128 --time_window=6 
+2. python nohup SOHO_DATA_GEN.py --products='MDI_96m' --date_start='1999-04-04' --date_finish='1999-04-06' --target_dimension=128 --time_window=6 
 --flag=subsample --home_dir=/home/USER/ > LOG.log
 ```
 
