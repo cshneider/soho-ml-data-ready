@@ -7,7 +7,7 @@ from time import process_time
 from tqdm import tqdm
 from SOHO_utility import *
 
-def main(date_start, date_finish, target_dimension, time_window, flag, home_dir, bases):
+def main(date_start, date_finish, image_size_output, time_window, flag, home_dir, bases):
     
     date_time_pre_start = date_start + '-0000'
     date_time_start= parser.parse(date_time_pre_start)
@@ -19,7 +19,7 @@ def main(date_start, date_finish, target_dimension, time_window, flag, home_dir,
 
     time_increment = 60
     
-    print('target_dimension:', target_dimension)
+    print('image_size_output:', image_size_output)
     print('flag:', flag)
     print('home_dir:', home_dir)
 
@@ -68,7 +68,7 @@ def main(date_start, date_finish, target_dimension, time_window, flag, home_dir,
                 all_size_sieved_times_pre, fetch_indices_product_orig = fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time)
                 if len(fetch_indices_product_orig) != 0:
                 
-                    all_time_window_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list_local = product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pre, ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir)
+                    all_time_window_sieved_times_product_times_modified, holes_product_list, unreadable_file_ids_product_list_local = product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pre, ind, product_results, look_ahead, time_window, url_prefix, flag, image_size_output, home_dir)
                     
                     if holes_product_list: #if image had missing regions (e.g., arising from telemetry errors)
                         holes_list.append(holes_product_list)
@@ -85,7 +85,7 @@ def main(date_start, date_finish, target_dimension, time_window, flag, home_dir,
                     if len(all_time_window_sieved_times_sorted) != 0:
                         prev_time.append(all_time_window_sieved_times_sorted[-1]) #append the last good time entry from the previous loop
                             
-                    csv_writer(base,home_dir, date_start, date_finish, flag, time_window, target_dimension, all_time_window_sieved_times_sorted)
+                    csv_writer(base,home_dir, date_start, date_finish, flag, time_window, image_size_output, all_time_window_sieved_times_sorted)
                 
 
             time_range_modified.next() #Sunpy iterator to go for the next time increment in number of days. There is also time_range_modified.previous() to go backwards in time.    
@@ -94,7 +94,7 @@ def main(date_start, date_finish, target_dimension, time_window, flag, home_dir,
         print(f'{base} holes_list', holes_list)
         print(f'{base} unreadable_file_ids_product_list_global:', unreadable_file_ids_product_list_global)
 
-        data_cuber(home_dir, base, date_start, date_finish, flag, time_window, target_dimension)
+        data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image_size_output)
         
         end_process_time = process_time()
         time_of_process = end_process_time - start_process_time
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     parser_args = argparse.ArgumentParser(description='SOHO ML Data experiment parameters')
     parser_args.add_argument('--date_start', metavar='time', required=True, help='yyyy-mm-dd, 1996-01-01 is earliest start', type = str)
     parser_args.add_argument('--date_finish', metavar='time', required=True, help='yyyy-mm-dd, 2011-05-01 is recommended latest finish, select a max range of 2 months', type = str)
-    parser_args.add_argument('--target_dimension', metavar='image size', required=True, help='e.g., 128', type = int)
+    parser_args.add_argument('--image_size_output', metavar='image size', required=True, help='e.g., 128', type = int)
     parser_args.add_argument('--time_window', metavar='time', required=True, help='time step in hours', type = int)
     parser_args.add_argument('--flag', metavar='resize strategy', required=True, help='choose from either "subsample", "interp", "minpool", or "maxpool" ', type = str)
     parser_args.add_argument('--home_dir', metavar='home directory', required=True, help='str, e.g., "/home/user/Documents/", need "/" in the end', type = str)
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     main(
         date_start = args.date_start,
         date_finish = args.date_finish,
-        target_dimension = args.target_dimension,
+        image_size_output = args.image_size_output,
         time_window = args.time_window,
         flag = args.flag,
         home_dir = args.home_dir,

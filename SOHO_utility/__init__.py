@@ -132,8 +132,8 @@ def holes(filename):
 """
 Reduces the image dimensions via one of the following four methods: subsampling, interpolation, min pooling, or max pooling.
 """
-def data_reducer(data,flag,target_dimension,axis1_shape):
-    scale_factor = int(axis1_shape/target_dimension)
+def data_reducer(data,flag,image_size_output,axis1_shape):
+    scale_factor = int(axis1_shape/image_size_output)
     
     if flag == 'subsample':
         reduced_data = data[::scale_factor].T[::scale_factor].T #subsampling image; every other row,column
@@ -229,7 +229,7 @@ def data_name_selector(home_dir, base, date_start, date_finish):
 """
 Generated a compressed h5py data cube from all fits files present in a product folder
 """
-def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, target_dimension):
+def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image_size_output):
 
     #print('base:', base)
     filepath = home_dir + base + '/'
@@ -251,8 +251,8 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, targe
                   
     time_start_name_new, time_finish_name_new = data_name_selector(home_dir, base, date_start, date_finish)
         
-    data_cube = h5py.File(f'{home_dir}{time_start_name_new}_to_{time_finish_name_new}_{base}_{flag}_{time_window}_{target_dimension}.h5', 'w')
-    data_cube.create_dataset(f'{base}_{target_dimension}', data=data_content_stack, compression="gzip")
+    data_cube = h5py.File(f'{home_dir}{time_start_name_new}_to_{time_finish_name_new}_{base}_{flag}_{time_window}_{image_size_output}.h5', 'w')
+    data_cube.create_dataset(f'{base}_{image_size_output}', data=data_content_stack, compression="gzip")
     data_cube.close()
                             
     return data_cube
@@ -371,7 +371,7 @@ def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir):
 """
 Checks the downloaded fits files for holes and discards them if holes are found. Repeats procedure at each time as long as an image contained missing pixels. 
 """
-def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pre, ind, product_results, look_ahead, time_window, url_prefix, flag, target_dimension, home_dir):
+def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pre, ind, product_results, look_ahead, time_window, url_prefix, flag, image_size_output, home_dir):
 
     holes_product_list = []
     unreadable_file_ids_product_list = []
@@ -391,9 +391,9 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
         if (data_product is not None) and (axis1_product == axis2_product) and (axisnum_product == 2):
 
             if not holes(query_result[0]): #so if not True; so no holes; can use image
-                reduced_product_data = data_reducer(data_product,flag,target_dimension,axis1_product)
+                reduced_product_data = data_reducer(data_product,flag,image_size_output,axis1_product)
                 time_data = product_results.get_response(0)[int(indiv_ind)]['time']['start']
-                writefits(f'{base}/SOHO_{base}_{time_data}_{target_dimension}', reduced_product_data, home_dir)
+                writefits(f'{base}/SOHO_{base}_{time_data}_{image_size_output}', reduced_product_data, home_dir)
                 os.remove(query_result[0]) #delete original downloaded file
                 all_time_window_sieved_times_product_times.append(time_data)
                 all_time_window_sieved_times_product_times_inds_list.append(indiv_ind)                
@@ -422,9 +422,9 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                     if (data_next_good is not None) and (axis1_next_good == axis2_next_good) and (axisnum_next_good == 2):
 
                         if not holes(query_result_next[0]): #so if not True; so no holes; can use image
-                            reduced_product_data = data_reducer(data_next_good,flag,target_dimension,axis1_next_good)
+                            reduced_product_data = data_reducer(data_next_good,flag,image_size_output,axis1_next_good)
                             time_data = product_results.get_response(0)[int(index)]['time']['start']
-                            writefits(f'{base}/SOHO_{base}_{time_data}_{target_dimension}', reduced_product_data, home_dir)
+                            writefits(f'{base}/SOHO_{base}_{time_data}_{image_size_output}', reduced_product_data, home_dir)
 
                             all_time_window_sieved_times_product_times.append(time_data) #(time_val) #unsorted time location
                             all_time_window_sieved_times_product_times_inds_list.append(index)
@@ -498,9 +498,9 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
                 if (data_next_good is not None) and (axis1_next_good == axis2_next_good) and (axisnum_next_good == 2):
 
                     if not holes(query_result_next[0]): #so if not True; so no holes; can use image
-                        reduced_product_data = data_reducer(data_next_good,flag,target_dimension,axis1_next_good)
+                        reduced_product_data = data_reducer(data_next_good,flag,image_size_output,axis1_next_good)
                         time_data = product_results.get_response(0)[int(index)]['time']['start']
-                        writefits(f'{base}/SOHO_{base}_{time_data}_{target_dimension}', reduced_product_data, home_dir)
+                        writefits(f'{base}/SOHO_{base}_{time_data}_{image_size_output}', reduced_product_data, home_dir)
 
                         all_time_window_sieved_times_product_times.append(time_data) #(time_val) #unsorted time location
                         all_time_window_sieved_times_product_times_inds_list.append(index)
@@ -560,8 +560,8 @@ def product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pr
 """
 The times corresponding to all fits files that passed all tests are written to csv files.
 """
-def csv_writer(base, home_dir, date_start, date_finish, flag, time_window, target_dimension, all_time_window_sieved_times_sorted):
-    with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{time_window}_{target_dimension}.csv', 'a') as f: #appending lines so not overwriting the file
+def csv_writer(base, home_dir, date_start, date_finish, flag, time_window, image_size_output, all_time_window_sieved_times_sorted):
+    with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_times_{flag}_{time_window}_{image_size_output}.csv', 'a') as f: #appending lines so not overwriting the file
         writer = csv.writer(f, delimiter='\n')
         writer.writerow(all_time_window_sieved_times_sorted)
 

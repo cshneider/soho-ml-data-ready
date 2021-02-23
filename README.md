@@ -42,7 +42,7 @@ SOHO_DATA_GEN experiment parameters:
 | -h, --help           |	Show this help message and exit. |  
 | --date_start         |	yyyy-mm-dd, 1996-01-01 is earliest start. |
 | --date_finish        |	yyyy-mm-dd, 2011-05-01 is recommended latest finish. |
-| --target_dimension   |	Image size (e.g., 128x128). |
+| --image_size_output  |	Image size (e.g., 128x128). |
 | --time_window	   | Integer time step in hours |
 | --flag 			   | Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool". |
 | --home_dir           | Home directory, e.g., "/home/user/Documents/", need "/" in the end. |
@@ -55,12 +55,12 @@ As described above, EIT and LASCO products continue to the present day.
 Example usages: 
 
 ```python 
-1. python nohup SOHO_DATA_GEN.py --products='EIT195, MDI_96m, LASCO_C3' --date_start='1996-01-01' --date_finish='2011-05-01' --target_dimension=128 --time_window=6 
+1. python nohup SOHO_DATA_GEN.py --products='EIT195, MDI_96m, LASCO_C3' --date_start='1996-01-01' --date_finish='2011-05-01' --image_size_output=128 --time_window=6 
 --flag=subsample --home_dir=/home/USER/ > LOG.log
 ```
 
 ```python 
-2. python nohup SOHO_DATA_GEN.py --products='MDI_96m' --date_start='1999-04-04' --date_finish='1999-04-06' --target_dimension=128 --time_window=6 
+2. python nohup SOHO_DATA_GEN.py --products='MDI_96m' --date_start='1999-04-04' --date_finish='1999-04-06' --image_size_output=128 --time_window=6 
 --flag=subsample --home_dir=/home/USER/ > LOG.log
 ```
 
@@ -128,7 +128,7 @@ SOHO_PRODUCT_SYNC experiment parameters:
 | --products           | Product types to synchronize. Enter all the following or a subset thereof, in any order, seperated by commas: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284". |
 
 Example usage:
-If one had run SOHO_DATA_GEN.py with the following inputs: --products='MDI_96m, LASCO_C3, EIT284, EIT195, LASCO_C2, EIT304, EIT171', --date_start='1996-01-01', --date_finish='2011-05-01', and time_window=6, (the --flag and --target_dimension are not important in this example) then one could do the following to sync a subset of the original products within a subset of the original time range and with a coarser time sampling of 12 hrs instead of 6 hrs:
+If one had run SOHO_DATA_GEN.py with the following inputs: --products='MDI_96m, LASCO_C3, EIT284, EIT195, LASCO_C2, EIT304, EIT171', --date_start='1996-01-01', --date_finish='2011-05-01', and time_window=6, (the --flag and --image_size_output are not important in this example) then one could do the following to sync a subset of the original products within a subset of the original time range and with a coarser time sampling of 12 hrs instead of 6 hrs:
 ```python
 1. python nohup SOHO_PRODUCT_SYNC.py --date_start=1999-01-01 --date_finish=2011-05-01 --time_step=12 --home_dir=/home/USER/ --option=Y --products='MDI_96m, EIT195, LASCO_C2' > LOG.log
 ```
