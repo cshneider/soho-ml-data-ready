@@ -31,13 +31,13 @@ def pattern_finder(home_dir, pattern):
 READ IN TIMES FROM FITS FILES PER PRODUCT TYPE IF THESE HAVE BEEN GENERATED LOCALLY BY PREVIOUSLY RUNNING SOHO_DATA_GEN.PY.
 FITS FILES ARE ALL UNIQUE AND SORTED TO ENSURE THAT THEY FOLLOW THE ORDER OF THE H5 DATA CUBE THAT HAS BEEN MADE EARLIER BY RUNNING SOHO_DATA_GEN.PY.
 """
-def fits_times_reader(home_dir, base): 
+def fits_times_reader(home_dir, base, mission): 
 
     print('base:', base)
-    filepath = home_dir + base + '/'
+    filepath = home_dir + base  + f'_{mission}' + '/'
 
-    data_files_pre = [f for f in listdir(filepath) if isfile(join(filepath, f))]
-    
+    data_files_pre_pre = [f for f in listdir(filepath) if isfile(join(filepath, f))]
+    data_files_pre = [f for f in data_files_pre_pre if 'fits' in f] #to ensure that only FITS files are collected, just in case    
     data_files = np.sort(data_files_pre)
     
     if 'EIT' in base:
@@ -65,13 +65,14 @@ def csv_times_reader(home_dir, pattern):
 """
 CHECKS THAT THE DIMENSION AMONG FITS FILES COMING FROM THE DIFFERENT SPECIFIED PRODUCTS IS INDEED THE SAME.
 """
-def dimension_checker_from_fits(home_dir, base_list):
+def dimension_checker_from_fits(home_dir, base_list, mission):
 
     data_dim_list = []
     for base in base_list:
         base = base.strip(' ')
-        filepath = home_dir + base + '/'
-        data_file = [f for f in listdir(filepath) if isfile(join(filepath, f))][0]
+        filepath = home_dir + base + f'_{mission}' + '/'
+        data_file_pre = [f for f in listdir(filepath) if isfile(join(filepath, f))] #[0]
+        data_file = [f for f in data_file_pre if 'fits' in f][0]
     
         if 'EIT' in base:
             data_dim = data_file.split('_')[3].split('.')[0]
@@ -90,15 +91,15 @@ def dimension_checker_from_fits(home_dir, base_list):
 """
 CHECKS THAT THE DIMENSION AMONG THE H5 CUBE AND CSV FILES COMING FROM THE DIFFERENT SPECIFIED PRODUCTS IS INDEED THE SAME.
 """
-def dimension_checker_from_h5cube_csv(home_dir, base_list): #assumes all h5 files in the same directory which is one above the product (base) directory
+def dimension_checker_from_h5cube_csv(home_dir, base_list, mission): #assumes all h5 files in the same directory which is one above the product (base) directory
 
     data_dim_list = []
     for base in base_list:
         base = base.strip(' ')
         
-        name = pattern_finder(home_dir, pattern = f'*{base}*[!sync].h5')
+        name = pattern_finder(home_dir, pattern = f'*{base}*{mission}*[!sync].h5')
         print('cube name:', name)
-        cube_dim = name.split('_')[-1].split('.')[0] #str
+        cube_dim = name.split('_')[-1].split('.')[0]
         print('cube_dim:', cube_dim)
         data_dim_list.append(cube_dim)
 
@@ -156,7 +157,7 @@ def time_step_prev_reader(home_dir, pattern):
 
     name = pattern_finder(home_dir, pattern)
     print('name from time_step_prev_reader:', name)
-    time_step_prev = name.split('_')[-2]
+    time_step_prev = name.split('_')[-4] #was [-2] previously
     print('time_step_prev from fcn:', time_step_prev)
     
     return int(time_step_prev)
@@ -164,7 +165,7 @@ def time_step_prev_reader(home_dir, pattern):
 """
 FIND CORRESPONDING DATA CUBE PER PRODUCT AND EXTRACT ITS DATA AND DIMENSION.
 """
-def cube_data_reader(home_dir, base, pattern):
+def cube_data_reader(home_dir, base, mission, pattern):
 
     name = pattern_finder(home_dir, pattern)            
     print('cube name:', name)
@@ -172,7 +173,7 @@ def cube_data_reader(home_dir, base, pattern):
     print('cube_dim:', cube_dim)
                 
     cube = h5py.File(f'{home_dir}{name}', 'r')
-    cube_data = cube[f'{base}_{cube_dim}'][:]
+    cube_data = cube[f'{base}_{mission}_{cube_dim}'][:]
     cube.close()
 
     return cube_data, cube_dim
@@ -243,26 +244,62 @@ def sync_times_and_inds_sort_by_product(synch_time_inds_list, synch_time_list):
      return synch_time_inds_list_mod, synch_time_list_mod
 
 """
+OUTPUTS TIMES AND INDICES TO BE USED FROM LASCO DIFFERENCE IMAGES. ### NEED TO TAKE INTO ACCOUNT THAT COULD HAVE BOTH C2 AND C3 PRESENT SIMULTANEOUSLY!!!
+"""
+def lasco_diff_times_inds(lasco_sync_times):
+     
+     #print('lasco_sync_times_internal:', lasco_sync_times)
+     synced_lasco_datetimes = [parser.parse(elem) for elem in lasco_sync_times]
+     #print('synced_lasco_datetimes:', synced_lasco_datetimes)
+     synced_lasco_datetimes_Fcorona_remov_pre = np.array(synced_lasco_datetimes[1:]) - np.array(synced_lasco_datetimes[:-1])
+     #print('synced_lasco_datetimes_Fcorona_remov_pre:', synced_lasco_datetimes_Fcorona_remov_pre)
+     synced_lasco_datetimes_Fcorona_remov = [np.round(elem.total_seconds()/3600.) for elem in synced_lasco_datetimes_Fcorona_remov_pre]
+     #print('synced_lasco_datetimes_Fcorona_remov:', synced_lasco_datetimes_Fcorona_remov)
+     lasco_ind_Fcorona_24h = np.where(np.array(synced_lasco_datetimes_Fcorona_remov) <= 24)[0]
+     #print('lasco_ind_Fcorona_24h:', lasco_ind_Fcorona_24h)
+     print('len(lasco_ind_Fcorona_24h):', len(lasco_ind_Fcorona_24h))     
+     
+     return lasco_ind_Fcorona_24h
+
+"""
 OUTPUTS DATA CUBES FOR EACH SPECIFIED PRODUCT. THESE CUBES ARE THE REDUCED VERSIONS OF THE ORIGINAL ONES SINCE ONLY THE TIME SLICES THAT COME WITHIN THE SPECIFIED TIME_STEP HAVE BEEN RETAINED.
 """
-def cube_sync_maker(home_dir, base, cube_data, cube_dim, ind_start, ind_end, synch_time_inds_mod, date_start, date_finish, time_step_prev, time_step):
+def cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, ind_start, ind_end, synch_time_inds_mod, date_start, date_finish, time_step_prev, time_step, mission, flag_lasco=None):
 
-     cube_data_mod_pre = cube_data[ind_start:ind_end+1]
-     cube_data_mod_pre = np.array([cube_data_mod_pre[i] for i in synch_time_inds_mod])
-     cube_data_mod = cube_data_mod_pre.astype('int16')
+     if flag_lasco is None:
+          cube_data_mod_pre_pre = cube_data[ind_start:ind_end+1]
+          cube_data_mod_pre = np.array([cube_data_mod_pre_pre[i] for i in synch_time_inds_mod])
+          cube_data_mod = cube_data_mod_pre.astype('int16')
+               
+          cube_sync = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{mission}_{base_list_len}products_{time_step_prev}_{time_step}_{cube_dim}_sync.h5', 'w')
+          cube_sync.create_dataset(f'{base}_{mission}_{cube_dim}', data=cube_data_mod) #not compressing images here since images compressed initially in data generation step #compression="gzip"
+          cube_sync.close()
      
-     cube_sync = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{time_step_prev}_{time_step}_{cube_dim}_sync.h5', 'w')
-     cube_sync.create_dataset(f'{base}_{cube_dim}', data=cube_data_mod, compression="gzip")
-     cube_sync.close()
+     else:
+          cube_data_mod = cube_data.astype('int16')
+          
+          cube_sync = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{flag_lasco}_{mission}_{base_list_len}products_{time_step_prev}_{time_step}_{cube_dim}_sync.h5', 'w')
+          cube_sync.create_dataset(f'{base}_{mission}_{cube_dim}', data=cube_data_mod) #not compressing images here since images compressed initially in data generation step #compression="gzip"
+          cube_sync.close()     
      
      return cube_sync
      
 """
 OUTPUTS A CSV FILE CONTAINING THE RETAINED TIMES PER SPECIFIED PRODUCT WHICH COINCIDE WITH THE TIMES OF OTHER PRODUCTS WITHIN THE TIME_STEP.
 """
-def csv_time_sync_writer(home_dir, base, date_start, date_finish, cube_dim, synch_time_list_mod, time_step_prev, time_step):
-    if not isfile(f'{home_dir}{date_start}_to_{date_finish}_{base}_{time_step_prev}_{time_step}_{cube_dim}_times_sync.csv'):
-        with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_{time_step_prev}_{time_step}_{cube_dim}_times_sync.csv', 'a') as f:
-            writer = csv.writer(f, delimiter='\n')
-            writer.writerow(synch_time_list_mod)
-
+def csv_time_sync_writer(home_dir, base, base_list_len, date_start, date_finish, cube_dim, synch_time_list_mod, time_step_prev, time_step, mission, flag_lasco=None):
+     
+     if flag_lasco is None:    
+          if not isfile(f'{home_dir}{date_start}_to_{date_finish}_{base}_{mission}_{base_list_len}products_{time_step_prev}_{time_step}_{cube_dim}_times_sync.csv'):
+               with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_{mission}_{base_list_len}products_{time_step_prev}_{time_step}_{cube_dim}_times_sync.csv', 'a') as f:
+                 writer = csv.writer(f, delimiter='\n')
+                 writer.writerow(synch_time_list_mod)
+     else:
+          if not isfile(f'{home_dir}{date_start}_to_{date_finish}_{base}_{mission}_{base_list_len}products_{flag_lasco}_{time_step_prev}_{time_step}_{cube_dim}_times_sync.csv'):
+               with open(f'{home_dir}{date_start}_to_{date_finish}_{base}_{mission}_{base_list_len}products_{flag_lasco}_{time_step_prev}_{time_step}_{cube_dim}_times_sync.csv', 'a') as f:
+                 writer = csv.writer(f, delimiter='\n')
+                 writer.writerow(synch_time_list_mod)     
+     
+  
+  
+     
