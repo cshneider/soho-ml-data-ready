@@ -2,6 +2,11 @@
 
 Generate and temporally sync SoHO and/or SDO Mission image products to make a standardized machine-learning-ready data set.
 
+## Flowchart for Software Framework
+https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg
+## Flowchart for ML experiments 
+https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps3.jpeg
+
 ## Instructions
 
 1. wget https://repo.anaconda.com/archive/Anaconda3-2020.11-Linux-x86_64.sh
