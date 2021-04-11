@@ -200,7 +200,7 @@ It is suggested not to use the explicit export method with "(method='url', proto
 **ETA per AIA EUV/UV product. These estimates are from a combination of the file size and high natural cadence (12s/24s) coupled with the 100 GB DRMS export limit. 
 This together results in a maximum internal time step of 1 day rather the 60 day time step used for the SOHO mission and for SDO HMI and SDO AIA 4500.   
 
-## Mission_Pproduct_Sync.py
+## Mission_Product_Sync.py
 This is the companion script to \Mission\_Data\_Gen.py to synchronize the times between the specified data products once they have all been downloaded from the VSO and pre-processed.
 The program outputs an HDF5 compressed (gzipped) data cube and an accompanying .csv file, both containing the "sync" keyword.
 The data is the chronologically stacked data of all of the respective folder's .fits files whose time stamps overlap within the specified time_step.
