@@ -5,7 +5,7 @@ Generate and temporally sync SoHO and/or SDO Mission image products to make a st
 ## Flowchart for Software Framework
 ![Software_Framework](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg)
 ## Flowchart for ML experiments 
-![ML_Experiments](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps3.jpeg)
+![ML_Experiments](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Step3.jpeg)
 
 ## Instructions
 
