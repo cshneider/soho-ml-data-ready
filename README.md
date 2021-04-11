@@ -264,3 +264,9 @@ with the following set as well which is synced with the LASCO difference images 
 Run time: ~10 min.
 
 These final *sync.h5 data cubes are now ready for input into an ML architecture.
+
+## Flowchart for Software Framework
+https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg
+
+## Flowchart for ML experiments 
+https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps3.jpeg
