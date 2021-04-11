@@ -61,6 +61,7 @@ def main(date_start, date_finish, image_size_output, time_window, flag, home_dir
         if not os.path.exists(base_dir):
             os.makedirs(base_dir)    
 
+        '''
         if ('AIA' in base) and (int(base.split('AIA')[1]) != 4500): #AIA4500 is once an hour. So if not AIA4500, then have AIA cadences at 12s and 24s -> time_increment has to be reduced from 60d -> 1d
             time_increment = 1
             print(f'new time increment {time_increment} days:')
@@ -72,7 +73,10 @@ def main(date_start, date_finish, image_size_output, time_window, flag, home_dir
             
         else:
             time_range = TimeRange(date_time_start, timedelta(days = time_increment)) #time_range re-initialized here for each new base name 
-
+        '''
+        
+        time_range = TimeRange(date_time_start, timedelta(days = time_increment))
+        
         prev_time, time_range_modified = prev_time_resumer(home_dir, base, time_range, date_time_end, mission) #time_range_modified.next() is the workshorse that advances time at the end of the time for-loop
         for t_value in tqdm(np.arange(num_loops)): #this is the main workhorse loop of the program
             print('t_value:', t_value)
@@ -81,7 +85,7 @@ def main(date_start, date_finish, image_size_output, time_window, flag, home_dir
             if time_range_modified.end > date_time_end:
                 time_range_modified = TimeRange(time_range_modified.start, date_time_end)  
                        
-            product_results, client = product_search(base, time_range_modified, client, mission) 
+            product_results, client = product_search(base, time_range_modified, client, mission, time_window) 
             
             if ('MDI' in base) or (mission == 'SDO'):
                 client_export_failed = ghost_file_check(product_results)

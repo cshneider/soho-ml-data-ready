@@ -294,7 +294,7 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image
 """
 Used SunPy's Fido to search for the user specified products
 """
-def product_search(base,time_range,client,mission):
+def product_search(base,time_range,client,mission,time_window):
 
     #drms_product_matches = ['MDI', 'HMI', 'AIA']
     euv_matches = ['94', '131', '171', '193', '211', '304', '335'] 
@@ -323,10 +323,10 @@ def product_search(base,time_range,client,mission):
             print('wavelen:', wavelen)
             
             if any([x in base for x in euv_matches]):
-                product_results = client.export(f'aia.lev1_euv_12s[{ts}-{tf}][{wavelen}]{{image}}')
+                product_results = client.export(f'aia.lev1_euv_12s[{ts}-{tf}@{time_window}h][{wavelen}]{{image}}')
             
             elif any([x in base for x in uv_matches]):
-                product_results = client.export(f'aia.lev1_uv_24s[{ts}-{tf}][{wavelen}]{{image}}')
+                product_results = client.export(f'aia.lev1_uv_24s[{ts}-{tf}@{time_window}h][{wavelen}]{{image}}')
             
             elif wavelen == 4500:
                 product_results = client.export(f'aia.lev1_vis_1h[{ts}-{tf}][{wavelen}]{{image}}')                                                               
