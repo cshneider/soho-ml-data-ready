@@ -3,9 +3,9 @@
 Generate and temporally sync SoHO and/or SDO Mission image products to make a standardized machine-learning-ready data set.
 
 ## Flowchart for Software Framework
-https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg
+![Software_Framework](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg)
 ## Flowchart for ML experiments 
-https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps3.jpeg
+![ML_Experiments](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps3.jpeg)
 
 ## Instructions
 
