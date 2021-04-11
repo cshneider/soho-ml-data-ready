@@ -11,6 +11,12 @@ Generate and temporally sync SoHO and/or SDO Mission image products to make a st
 5. conda create -n Give\_A\_Name\_for\_Your\_Virtual\_Environment python=3.6 anaconda
 6. conda install --file Path\_to\_Mission\_Requirements\_File/Mission\_Requirements.txt
 
+## Flowchart for Software Framework
+![Software_Framework](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg)
+
+## Flowchart for ML experiments 
+![ML_Experiments](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Step3.jpeg)
+
 ## Mission_Data_Gen.py
 
 First generate the data that has the proper size and time cadence as specified by the user and remove any data with missing pixel values. 
@@ -264,9 +270,3 @@ with the following set as well which is synced with the LASCO difference images 
 Run time: ~10 min.
 
 These final *sync.h5 data cubes are now ready for input into an ML architecture.
-
-## Flowchart for Software Framework
-![Software_Framework](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg)
-
-## Flowchart for ML experiments 
-![ML_Experiments](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Step3.jpeg)
