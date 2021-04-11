@@ -198,12 +198,13 @@ It is suggested not to use the explicit export method with "(method='url', proto
 | -------------| --------|
 | HMI 		| ~100    |
 | AIA visible  | ~25     |
-| AIA UV**  	| ~300    |
-| AIA EUV** 	| ~300    |
+| AIA UV**  	| ~25     |
+| AIA EUV** 	| ~25     |
 
 *Estimated time of arrival for SDO mission products from 2010-2020 at a cadence of every 6 hours with no explicit call to include FITS metadata.
 **ETA per AIA EUV/UV product. These estimates are from a combination of the file size and high natural cadence (12s/24s) coupled with the 100 GB DRMS export limit. 
-This together results in a maximum internal time step of 1 day rather the 60 day time step used for the SOHO mission and for SDO HMI and SDO AIA 4500.   
+This previosuly resulted in a maximum internal time step of 1 day rather the 60 day time step used for the SOHO mission and for SDO HMI and SDO AIA 4500. 
+Now, using @{time_window}h in DRMS to shorten the export.  
 
 ## Mission_Product_Sync.py
 This is the companion script to \Mission\_Data\_Gen.py to synchronize the times between the specified data products once they have all been downloaded from the VSO and pre-processed.
