@@ -11,12 +11,6 @@ Generate and temporally sync SoHO and/or SDO Mission image products to make a st
 5. conda create -n Give\_A\_Name\_for\_Your\_Virtual\_Environment python=3.6 anaconda
 6. conda install --file Path\_to\_Mission\_Requirements\_File/Mission\_Requirements.txt
 
-## Flowchart for Software Framework
-![Software_Framework](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg)
-
-## Flowchart for ML experiments 
-![ML_Experiments](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Step3.jpeg)
-
 ## Mission_Data_Gen.py
 
 First generate the data that has the proper size and time cadence as specified by the user and remove any data with missing pixel values. 
@@ -37,7 +31,7 @@ Mission\_Data\_Gen experiment parameters:
 | --products           | Product types. Enter all the following or a subset thereof, in any order, seperated by commas. For the SoHO mission: "EIT195, MDI\_96m, LASCO\_C2, LASCO\_C3, EIT171, EIT304, EIT284" and for the SDO mission: "HMI_720s, AIA94, AIA131, AIA171, AIA193, AIA211, AIA304, AIA335, AIA1600, AIA1700, AIA4500". |
 | --fits_headers       | Include header metadata in individual FITS files? Y/y or N/n. Applies to MDI calibrated data only from JSOC. Required argument. Faster download without header metadata. | 
 | --lev1_LASCO		   | Whether to use level 1 LASCO C2 and C3? Y/y or N/n. If no, then level 0.5 LASCO will be used. Required argument. |
-| --email 		   | User's email. Required by DRMS for the JSOC Client in order to have DRMS obtain the calibrated MDI products. |
+| --email 		   | User's email. Required by DRMS for the JSOC Client in order to have DRMS obtain the calibrated MDI products and all SDO mission products. |
 | --mission 		   | Choose from 'SOHO' or 'SDO'. |
 
 __Note:__ 
@@ -183,7 +177,7 @@ __Note__: As an alternative to wget one can also use include Fido.fetch().
 __Including Solar Dynamics Observatory (SDO) NASA mission data products__
 Since our software pipeline uses SunPy Fido, other mission data can be readily obtained from Fido clients such as SDAC, JSOC, EVE, GONG, and other detauled under 'Fido clients' 
 https://docs.sunpy.org/en/stable/guide/acquiring_data/fido.html#fido-guide. 
-We use DRMS with JSOC to obtain the SoHO MDI with series given by mdi.fd_M_96m_lev182 and all SDO mission products.
+We use DRMS with JSOC to obtain all SDO mission products.
 The SDO HMI Line-of-Sight Magnetograms, hmi.M_720s, with a cadence of 720 sec are used in this pipeline. 
 To mention, for completenss, JSOC also has hmi.M_45s at a cadence of 45 sec.
 SDO AIA seven EUV filters, series aia.lev1_euv_12s, are at a cadence of every 12 sec. EUV wavelengths are at 94, 131, 171, 193, 211, 304, 335 Angstrom. 
