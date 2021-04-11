@@ -1,6 +1,6 @@
-# SOHO ML Data Ready
+# Mission ML Data Ready
 
-Generate and temporally sync SOHO image products to make a standardized machine-learning-ready data set.
+Generate and temporally sync SoHO and/or SDO Mission image products to make a standardized machine-learning-ready data set.
 
 ## Instructions
 
@@ -8,16 +8,16 @@ Generate and temporally sync SOHO image products to make a standardized machine-
 2. bash Anaconda3-2020.11-Linux-x86_64.sh
 3. source ~/.bashrc
 4. conda -V
-5. conda create -n Give_A_Name_for_Your_Virtual_Environment python=3.6 anaconda
-6. conda install --file Path_to_SOHO_Requirements_File/SOHO_requirements.txt
+5. conda create -n Give\_A\_Name\_for\_Your\_Virtual\_Environment python=3.6 anaconda
+6. conda install --file Path\_to\_Mission\_Requirements\_File/Mission\_Requirements.txt
 
-## SOHO_DATA_GEN.py
+## Mission_Data_Gen.py
 
 First generate the data that has the proper size and time cadence as specified by the user and remove any data with missing pixel values. 
 
 ### Usage and examples
 
-SOHO_DATA_GEN experiment parameters:
+Mission\_Data\_Gen experiment parameters:
 
 | Input 			   | Description |
 | ---------------------| ---------------------------------------------------- |
@@ -28,7 +28,7 @@ SOHO_DATA_GEN experiment parameters:
 | --time_window	   | Integer time step in hours |
 | --flag 			   | Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool". |
 | --home_dir           | Home directory, e.g., "/home/user/Documents/", need "/" in the end. |
-| --products           | Product types. Enter all the following or a subset thereof, in any order, seperated by commas. For the SOHO mission: "EIT195, MDI\_96m, LASCO\_C2, LASCO\_C3, EIT171, EIT304, EIT284" and for the SDO mission: "HMI_720s, AIA94, AIA131, AIA171, AIA193, AIA211, AIA304, AIA335, AIA1600, AIA1700, AIA4500". |
+| --products           | Product types. Enter all the following or a subset thereof, in any order, seperated by commas. For the SoHO mission: "EIT195, MDI\_96m, LASCO\_C2, LASCO\_C3, EIT171, EIT304, EIT284" and for the SDO mission: "HMI_720s, AIA94, AIA131, AIA171, AIA193, AIA211, AIA304, AIA335, AIA1600, AIA1700, AIA4500". |
 | --fits_headers       | Include header metadata in individual FITS files? Y/y or N/n. Applies to MDI calibrated data only from JSOC. Required argument. Faster download without header metadata. | 
 | --lev1_LASCO		   | Whether to use level 1 LASCO C2 and C3? Y/y or N/n. If no, then level 0.5 LASCO will be used. Required argument. |
 | --email 		   | User's email. Required by DRMS for the JSOC Client in order to have DRMS obtain the calibrated MDI products. |
@@ -49,36 +49,36 @@ http://jsoc.stanford.edu/ajax/register_email.html
 Example usages:
 
 ```python
-1. python nohup SOHO_DATA_GEN.py --products='EIT195, MDI_96m, LASCO_C3' --date_start='1996-01-01' --date_finish='2011-05-01' --image_size_output=128 --time_window=6
+1. python nohup Mission_Data_Gen.py --products='EIT195, MDI_96m, LASCO_C3' --date_start='1996-01-01' --date_finish='2011-05-01' --image_size_output=128 --time_window=6
 --flag=subsample --home_dir=/home/USER/ --fits_headers=N --lev1_LASCO=N --email=USER@Domain --mission=SOHO > LOG.log
 ```
 
 ```python
-2. python nohup SOHO_DATA_GEN.py --products='MDI_96m' --date_start='1999-04-04' --date_finish='1999-04-06' --image_size_output=128 --time_window=6
+2. python nohup Mission_Data_Gen.py --products='MDI_96m' --date_start='1999-04-04' --date_finish='1999-04-06' --image_size_output=128 --time_window=6
 --flag=subsample --home_dir=/home/USER/ --fits_headers=N --lev1_LASCO=N --email=USER@Domain --mission=SOHO > LOG.log
 ```
 
 ### Output
 
 Example output for MDI_96m with subsample resize strategy to arrive at a final image size of 128x128:
-- /home/USER/1999-04-04-00:00:02_to_1999-04-06-22:24:02_MDI_96m_subsample_6_LASCOlev1-N_SOHO_128.h5 --> all .fits files found, chronologically ordered with start time (first slice of cube) to finish time (last slice of cube). nomenclature contains exact time of start and finish .fits files composing the cube together with the product type of the cube, the downscaling strategy and the final image dimension.
-- /home/USER/1999-04-04_to_1999-04-06_MDI_96m_times_subsample_6_LASCOlev1-N_SOHO_128.csv --> contains initial times of all .fits files; may have duplicate times present.
+- /home/USER/1999-04-04-00:00:02_to_1999-04-06-22:24:02\_MDI\_96m\_subsample\_6\_LASCOlev1-N\_SOHO_128.h5 --> all .fits files found, chronologically ordered with start time (first slice of cube) to finish time (last slice of cube). nomenclature contains exact time of start and finish .fits files composing the cube together with the product type of the cube, the downscaling strategy and the final image dimension.
+- /home/USER/1999-04-04_to_1999-04-06\_MDI\_96m\_times\_subsample\_6\_LASCOlev1-N\_SOHO_128.csv --> contains initial times of all .fits files; may have duplicate times present.
 - /home/USER/MDI_96m --> contains all *.fits files. All .fits files are unique.
 
 In case of this time range being run as two seperate time ranges as: --date_start='1999-04-04' --date_finish='1999-04-05' followed by --date_start='1999-04-05' --date_finish='1999-04-06' one would obtain:
-- /home/USER/1999-04-04-00:00:02_to_1999-04-05-20:48:02_MDI_96m_subsample_6_LASCOlev1-N_SOHO_128.h5 --> individual HDF5 file for that run
-- /home/USER/1999-04-04-00:00:02_to_1999-04-06-03:12:02_MDI_96m_subsample_6_LASCOlev1-N_SOHO_128.h5 --> individual HDF5 file for that run
-- /home/USER/1999-04-04-00:00:02_to_1999-04-06-22:24:02_MDI_96m_subsample_6_LASCOlev1-N_SOHO_128.h5 --> combined HDF5 file from both days when second run has finished as this picks up all the .fits files present in the folder.
-- /home/USER/1999-04-04_to_1999-04-05_MDI_96m_times_subsample_6_LASCOlev1-N_SOHO_128.csv --> individual CSV file for that run
-- /home/USER/1999-04-05_to_1999-04-06_MDI_96m_times_subsample_6_LASCOlev1-N_SOHO_128.csv --> individual CSV file for that run
+- /home/USER/1999-04-04-00:00:02\_to\_1999-04-05-20:48:02\_MDI\_96m\_subsample\_6\_LASCOlev1-N\_SOHO_128.h5 --> individual HDF5 file for that run
+- /home/USER/1999-04-04-00:00:02\_to\_1999-04-06-03:12:02\_MDI\_96m\_subsample\_6\_LASCOlev1-N\_SOHO_128.h5 --> individual HDF5 file for that run
+- /home/USER/1999-04-04-00:00:02\_to\_1999-04-06-22:24:02\_MDI\_96m\_subsample\_6\_LASCOlev1-N\_SOHO_128.h5 --> combined HDF5 file from both days when second run has finished as this picks up all the .fits files present in the folder.
+- /home/USER/1999-04-04_to_1999-04-05\_MDI\_96m\_times\_subsample\_6\_LASCOlev1-N\_SOHO_128.csv --> individual CSV file for that run
+- /home/USER/1999-04-05_to_1999-04-06\_MDI\_96m\_times\_subsample\_6\_LASCOlev1-N\_SOHO_128.csv --> individual CSV file for that run
 - /home/USER/MDI_96m --> all .fits files from both runs.
 
-Example name of a .fits file: /home/USER/MDI_96m/SOHO_MDI_96m_19990406031202_128.fits. The date and time information is combined in the file name (i.e., 1999-04-06 03:12:02 --> 19990406031202 ).
+Example name of a .fits file: /home/USER/MDI\_96m/SOHO\_MDI\_96m\_19990406031202_128.fits. The date and time information is combined in the file name (i.e., 1999-04-06 03:12:02 --> 19990406031202 ).
 NOTE: CSV files pruduced from a split time range are not merged. CSV files are provided as more of a check for the USER. They are not used by any successive programs as all the time information is contained in the individual nomenclature  of each .fits file.
 
 ### Detailed program description
 
-This program focuses entirely on data products obtained from the NASA SOHO (Solar and Heliospheric Observatory) mission:
+This program focuses entirely on data products obtained from the NASA SoHO (Solar and Heliospheric Observatory) mission:
 
 * MDI (Michelson Doppler Imager) @ 96 minute cadence
 * LASCO (Large Angle and Spectrometric Coronagraph): C2 (1.5 - 6 solar radii) and C3 (3.7 to 30 solar radii)
@@ -86,8 +86,8 @@ This program focuses entirely on data products obtained from the NASA SOHO (Sola
 
 This program returns up to 7 folders, as specified by the user, which are named after their respective products that are queried with SunPy's Federated Internet Data Obtainer (Fido) and the Data Record Management System (DRMS) Python package. The DRMS is a system that was developed by the Joint Science Operation Center (JSOC).
 
-For calibrated MDI images, processed by Dr. Monica Bobra at Stanford University, DRMS queries Stanford University's JSOC.
-These have the JSOC series 'mdi.fd_M_96m_lev182'.
+For calibrated MDI images, DRMS queries Stanford University's JSOC.
+These have the JSOC series 'mdi.fd\_M\_96m\_lev182'.
 
 Each folder contains .fits (FITS = flexible Image Transport System) files which have been sieved for:
 
@@ -106,11 +106,11 @@ For MDI calibrated images from JSOC obtained with DRMS, in order to view those i
 
 ```python
 out_dir = 'PATH_SOME_DIRECTORY'
-hole_MDI = client.export('A_NAME_IN_THE_MDI_96m holes_list_THAT'S_IN_YOUR_LOG_FILE')
+hole_MDI = client.export("A_NAME_IN_THE_MDI_96m holes_list_THAT'S_IN_YOUR_LOG_FILE")
 hole_MDI_file = hole_MDI.download(out_dir)
 ```
  
-The log file will also contain url links to LASCO C2 and C3 images that are probably comets or planet transients, based on applying the Probabilistic Hough Transform (https://scikit-image.org/docs/dev/auto_examples/edges/plot_line_hough_transform.html) on an edge-filtered image, that was obtained from using the Canny algorithm, to detect straight lines which are signatures of comets. Horizontal straight lines are signatures of planet transients and a subset of comets and so we use our filter to detect and remove C2 and C3 images containing planetary transients which are expected to affect the machine learning system. Comet detection would require some further rules for identifying lines which are not only horizontal and which are not due to concentric bright rings on the coronograph itself. Cosmic rays (CR) can also leave traces that have a small apparent size and resemble some planetary transient signatures on the C2 and C3 instruments. We apply the Laplacian of Gaussian (https://scikit-image.org/docs/dev/auto_examples/features_detection/plot_blob.html) on downsampled C2 and C3 images to detect blobs which correspond to CRs. 
+The log file will also contain url links to LASCO C2 and LASCO C3 images that are probably comets or planet transients, based on applying the Probabilistic Hough Transform (https://scikit-image.org/docs/dev/auto_examples/edges/plot_line_hough_transform.html) on an edge-filtered image, that was obtained from using the Canny algorithm, to detect straight lines which are signatures of comets. Horizontal straight lines are signatures of planet transients and a subset of comets and so we use our filter to detect and remove C2 and C3 images containing planetary transients which are expected to affect the machine learning system. Comet detection would require some further rules for identifying lines which are not only horizontal and which are not due to concentric bright rings on the coronograph itself. Cosmic rays (CR) can also leave traces that have a small apparent size and resemble some planetary transient signatures on the C2 and C3 instruments. We apply the Laplacian of Gaussian (https://scikit-image.org/docs/dev/auto_examples/features_detection/plot_blob.html) on downsampled C2 and C3 images to detect blobs which correspond to CRs. 
 
 Please check the Planet_Comet_examples folder provided for examples together with the Planet_Comet_Detector.ipynb Jupyter notebook.
 Note that the FITS images in the Jupyter notebook plot are currently the vertically flipped images of those rendered by the ds9 program that reads FITS files.
@@ -129,13 +129,13 @@ Perhaps use images from 1999 onwards for all product types.
 
 Two time bars show progress: one time bar is for the completion of a given product type being processed and the other time bar is the progress in terms of all products entered.
 
-SOHO mission data products can be obtained from VSO as follows: for MDI: 1996.05.01 − 2011.04.12, for LASCO: 1995.12.08 till present, for EIT 1996.01.01 to present.
+SoHO mission data products can be obtained from VSO as follows: for MDI: 1996.05.01 − 2011.04.12, for LASCO: 1995.12.08 till present, for EIT 1996.01.01 to present.
 The SDO (Solar Dynamics Observatory) mission provides higher resolution and higher cadence data products from 2010.05.12 AIA (Atmospheric Imaging Assembly) and from 2010.04.30 EVE (Extreme Ultraviolet Variability Experiment) together replaced EIT, from 2010.04.08 HMI (Helioseismic and Magnetic Imager) replaced MDI.
-The advantage of using SOHO data is that it has basically covered solar cycles 23 and 24 with all of its products and continues into cyle 25 with most of its products.
+The advantage of using SoHO data is that it has basically covered solar cycles 23 and 24 with all of its products and continues into cyle 25 with most of its products.
 
 Individual product benchmarks for querying all 7 data products with a time window of 6 hours and time span of 01.01.1999 - 12.31.2010.
 
-| SOHO Product | No. Files | Time (hrs) | holes | pleanetary transients in C2 and C3 removed|
+| SoHO Product | No. Files | Time (hrs) | holes | planetary transients in C2 and C3 removed|
 | ------------ | --------- | ---------- | ------| -------------------------------------------|
 | LASCO_C2 | 15383 | ~10* | 489 | 7511  |
 | LASCO_C3 | 13354 | ~18* | 699  | 23901  |
@@ -177,36 +177,31 @@ __Note__: As an alternative to wget one can also use include Fido.fetch().
 __Including Solar Dynamics Observatory (SDO) NASA mission data products__
 Since our software pipeline uses SunPy Fido, other mission data can be readily obtained from Fido clients such as SDAC, JSOC, EVE, GONG, and other detauled under 'Fido clients' 
 https://docs.sunpy.org/en/stable/guide/acquiring_data/fido.html#fido-guide. 
-We use DRMS with JSOC to obtain the SDO mission products.
-HMI 'VECTOR_MAGNETIC_FIELD' is at a cadence of 720 sec whereas the 'LOS_MAGNETIC_FIELD' is at a cadence of 45 sec.
-AIA seven EUV filters are at a cadence of every 12 sec.
-AIA two UV band passes are at a cadence of every 24 sec.
-AIA continuum data at 4500 Angstrom is at a cadence of 1 hour.
+We use DRMS with JSOC to obtain the SoHO MDI with series given by mdi.fd_M_96m_lev182 and all SDO mission products.
+The SDO HMI Line-of-Sight Magnetograms, hmi.M_720s, with a cadence of 720 sec are used in this pipeline. 
+To mention, for completenss, JSOC also has hmi.M_45s at a cadence of 45 sec.
+SDO AIA seven EUV filters, series aia.lev1_euv_12s, are at a cadence of every 12 sec. EUV wavelengths are at 94, 131, 171, 193, 211, 304, 335 Angstrom. 
+SDO AIA two UV band passes, series aia.lev1_uv_24s, are at a cadence of every 24 sec. UV wavelengths are at 1600 and 1700 Angstrom.
+SDO AIA continuum data at 4500 Angstrom, series aia.lev1_vis_1h, is at a cadence of 1 hour.
+For SDO AIA, both 'images' and 'spikes' (for calibration) are available and so 'images' are explicitely specified.
 
-```python
-elif 'HMI' in base:
-	product_results = Fido.search(a.vso.Time('2012-01-01','2012-01-02'), a.vso.Source('SDO'), a.vso.Instrument('HMI'), a.vso.Provider('JSOC'), a.vso.Physobs('VECTOR_MAGNETIC_FIELD'))
+__Note__: 
+It is suggested not to use the explicit export method with "(method='url', protocol='fits')" unless absolutely necessary to havw the FITS header metadata as this slows down the download and JSOC can stop responding after a certain number of export requests have been exceeded. Without the explicit "(method='url', protocol='fits')", there will be no 'hard' export requests for JSOC.
 
-elif 'AIA' in base:
-	wavelen = 335 #Choose from 10 wavelengths in Angstrom units: 94, 131, 171, 193, 211, 304, 335, 1600, 1700, 4500.
-	product_results = Fido.search(a.vso.Time('2012-01-01','2012-01-02'), a.vso.Source('SDO'), a.vso.Instrument('AIA'), a.vso.Provider('JSOC'), a.vso.Wavelength(wavelen * a.vso.u.Angstrom, wavelen * a.vso.u.Angstrom))
-```
 
-This is then followed by:
+| SDO Product | ETA* (hrs)| 
+| -------------| --------|
+| HMI 		| ~100    |
+| AIA visible  | ~25     |
+| AIA UV**  	| ~300    |
+| AIA EUV** 	| ~300    |
 
-```python
-elif 'HMI' or 'AIA' in base:
-	file_num = product_results.file_num
-	if file_num == 0:
-		ind = []
-	else:
-		ind = np.arange(file_num)
-```
-since all the SDO sizes of the files are correct in contrast to the case for the SOHO data where many different kinds of files were included in the SDAC database.
-The fetch_indices() module will work for the above set of commands for SDO since 'product_results.get_response(0)[int(value)]['time']['start'])' is valid for the SDO products too.
+*Estimated time of arrival for SDO mission products from 2010-2020 at a cadence of every 6 hours with no explicit call to include FITS metadata.
+**ETA per AIA EUV/UV product. These estimates are from a combination of the file size and high natural cadence (12s/24s) coupled with the 100 GB DRMS export limit. 
+This together results in a maximum internal time step of 1 day rather the 60 day time step used for the SOHO mission and for SDO HMI and SDO AIA 4500.   
 
-## SOHO_PRODUCT_SYNC.py
-This is the companion script to SOHO_DATA_GEN.py to synchronize the times between the specified data products once they have all been downloaded from the VSO and pre-processed.
+## Mission_Pproduct_Sync.py
+This is the companion script to \Mission\_Data\_Gen.py to synchronize the times between the specified data products once they have all been downloaded from the VSO and pre-processed.
 The program outputs an HDF5 compressed (gzipped) data cube and an accompanying .csv file, both containing the "sync" keyword.
 The data is the chronologically stacked data of all of the respective folder's .fits files whose time stamps overlap within the specified time_step.
 All data is cast as int16 with interger values in the range [-32767, 32767] for all pixels. This should be sufficient to deal with all pixel values present in any product.
@@ -218,7 +213,7 @@ Two time progress counters show the elapsed time in real time.
 The algorithm works as follows:
 
 Firstly, two options are provided, which are selected with a yes/no:
-- If one just has downlaoded the HDF5 cubes and .csv files without running SOHO_DATA_GEN.py locally then the data from HDF5 cubes will be uptaken along with the corresponding times from .csv file for each product specified.
+- If one just has downlaoded the HDF5 cubes and .csv files without running \Mission_Data_Gen.py locally then the data from HDF5 cubes will be uptaken along with the corresponding times from .csv file for each product specified.
 - If have both the HDF5 data cubes along with the corresponding .fits files then the .fits files will be used to obtain both the data and the times since the time stamps are in the names of the .fits files themselves.
 
 Next:
@@ -230,7 +225,7 @@ Next:
 
 Although the dimensions across the different products are checked to be the same, as described above, the flag (resize strategy used) is left open since the user may have wanted to combine images of the same dimension but obtained with different resize strategies across the different products.
 
-SOHO_PRODUCT_SYNC experiment parameters:
+Mission\_Product\_Sync experiment parameters:
 
 | Input 			   | Description |
 | ---------------------| ---------------------------------------------------- |
@@ -244,27 +239,27 @@ SOHO_PRODUCT_SYNC experiment parameters:
 | --mission 		   | Choose from 'SOHO' or 'SDO'. |
 
 Example usage:
-If one had run SOHO_DATA_GEN.py with the following inputs: --products='MDI_96m, LASCO_C3, EIT284, EIT195, LASCO_C2, EIT304, EIT171', --date_start='1996-01-01', --date_finish='2011-05-01', and time_window=6, (the --flag and --image_size_output are not important in this example) then one could do the following to sync a subset of the original products within a subset of the original time range and with a coarser time sampling of 12 hrs instead of 6 hrs:
+If one had run Mission\_Data\_Gen.py with the following inputs: --products='MDI\_96m, LASCO\_C3, EIT284, EIT195, LASCO\_C2, EIT304, EIT171', --date_start='1996-01-01', --date_finish='2011-05-01', and time_window=6, (the --flag and --image_size_output are not important in this example) then one could do the following to sync a subset of the original products within a subset of the original time range and with a coarser time sampling of 12 hrs instead of 6 hrs:
 ```python
-1. python nohup SOHO_PRODUCT_SYNC.py --date_start=1999-01-01 --date_finish=2011-05-01 --time_step=12 --home_dir=/home/USER/ --option=Y --products='MDI_96m, EIT195, LASCO_C2' --mission='SOHO' > LOG.log
+1. python nohup Mission_Product_Sync.py --date_start=1999-01-01 --date_finish=2011-05-01 --time_step=12 --home_dir=/home/USER/ --option=Y --products='MDI_96m, EIT195, LASCO_C2' --mission='SOHO' > LOG.log
 ```
 
 Example output:
 
 In addition to the product folders, .h5 files, and .csv files already present, the following new products would be produced:
-- 1999-01-01_to_2011-05-01_MDI_96m_SOHO_3products_6_12_128_sync.h5
-- 1999-01-01_to_2011-05-01_EIT195_SOHO_3products_6_12_128_sync.h5
-- 1999-01-01_to_2011-05-01_LASCO_SOHO_3products_C2_6_12_128_sync.h5
-- 1999-01-01_to_2011-05-01_MDI_96m_SOHO_3products_6_12_128_times_sync.csv
-- 1999-01-01_to_2011-05-01_EIT195_SOHO_3products_6_12_128_times_sync.csv
-- 1999-01-01_to_2011-05-01_LASCO_SOHO_3products_C2_6_12_128_times_sync.csv
+- 1999-01-01_to_2011-05-01\_MDI\_96m\_SOHO\_3products\_6\_12\_128_sync.h5
+- 1999-01-01_to_2011-05-01\_EIT195\_SOHO\_3products\_6\_12\_128\_sync.h5
+- 1999-01-01_to_2011-05-01\_LASCO\_C2\_SOHO\_3products\_6\_12\_128\_sync.h5
+- 1999-01-01_to_2011-05-01\_MDI\_96m\_SOHO\_3products\_6\_12\_128\_times\_sync.csv
+- 1999-01-01_to_2011-05-01\_EIT195\_SOHO\_3products\_6\_12\_128\_times\_sync.csv
+- 1999-01-01_to_2011-05-01\_LASCO\_C2\_SOHO\_3products\_6\_12\_128\_times\_sync.csv
 with the following set as well which is synced with the LASCO difference images to subtract the Fcorona:
-- 1999-01-01_to_2011-05-01_MDI_96m_SOHO_3products_Fcorona_6_12_128_sync.h5
-- 1999-01-01_to_2011-05-01_EIT195_SOHO_3products_Fcorona_6_12_128_sync.h5
-- 1999-01-01_to_2011-05-01_LASCO_SOHO_3products_Fcorona_C2_6_12_128_sync.h5
-- 1999-01-01_to_2011-05-01_MDI_96m_SOHO_3products_Fcorona_6_12_128_times_sync.csv
-- 1999-01-01_to_2011-05-01_EIT195_SOHO_3products_Fcorona_6_12_128_times_sync.csv
-- 1999-01-01_to_2011-05-01_LASCO_SOHO_3products_Fcorona_C2_6_12_128_times_sync.csv
+- 1999-01-01_to_2011-05-01\_MDI\_96m\_SOHO\_3products\_Fcorona\_6\_12\_128\_sync.h5
+- 1999-01-01_to_2011-05-01\_EIT195\_SOHO\_3products\_Fcorona\_6\_12\_128\_sync.h5
+- 1999-01-01_to_2011-05-01\_LASCO\_C2\_SOHO\_3products\_Fcorona\_6\_12\_128\_sync.h5
+- 1999-01-01_to_2011-05-01\_MDI\_96m\_SOHO\_3products\_Fcorona\_6\_12\_128\_times\_sync.csv
+- 1999-01-01_to_2011-05-01\_EIT195\_SOHO\_3products\_Fcorona\_6\_12\_128\_times\_sync.csv
+- 1999-01-01_to_2011-05-01\_LASCO\_SOHO\_C2\_3products\_Fcorona\_6\_12\_128\_times\_sync.csv
 
 Run time: ~10 min.
 

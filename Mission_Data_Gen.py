@@ -6,7 +6,7 @@ from datetime import datetime, date, time, timedelta
 from sunpy.time import TimeRange
 from time import process_time
 from tqdm import tqdm
-from SOHO_utility import *
+from Mission_utility import *
 
 
 def main(date_start, date_finish, image_size_output, time_window, flag, home_dir, bases, fits_headers, lev1_LASCO, email, mission):
@@ -64,6 +64,10 @@ def main(date_start, date_finish, image_size_output, time_window, flag, home_dir
         if ('AIA' in base) and (int(base.split('AIA')[1]) != 4500): #AIA4500 is once an hour. So if not AIA4500, then have AIA cadences at 12s and 24s -> time_increment has to be reduced from 60d -> 1d
             time_increment = 1
             print(f'new time increment {time_increment} days:')
+            total_sec = timedelta(days = time_increment).total_seconds()
+            print('new total_sec:', total_sec)
+            num_loops = np.ceil(diff_start_finish_total_sec/total_sec) + 1 #num_loops would be equal to 94 + 1 for 19960101-0000' - '20110501-0000'
+            print('new num_loops:', num_loops)            
             time_range = TimeRange(date_time_start, timedelta(days = time_increment))
             
         else:

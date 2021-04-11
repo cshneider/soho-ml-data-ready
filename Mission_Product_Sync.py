@@ -1,6 +1,6 @@
 from tqdm import tqdm
 from time import process_time 
-from SOHO_utility.product_time_sync import *
+from Mission_utility.product_time_sync import *
 
 def main(date_start, date_finish, time_step, home_dir, bases, option, mission): #with date_start, date_finish can further regulate which fits files want to start/end with in case different from original prior choice!
 

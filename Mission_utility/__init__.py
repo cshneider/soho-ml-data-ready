@@ -58,7 +58,6 @@ def readfits(filename):
 """
 Writes a fits file while preserving the header metadata
 """
-
 def writefits(filename, data, hdrs, home_dir):
     if not os.path.exists(f'{home_dir}{filename}.fits'):
         hdrprimary = fits.PrimaryHDU(header=hdrs[len(hdrs)-1])
@@ -91,6 +90,8 @@ def holes(filename,base,mission):
         y_coord = hdr['CRPIX2']
         comments = hdr['COMMENT'][-1]
         missing_vals = int(hdr['MISSVALS'])
+        blank_val = int(hdr['BLANK'])
+        
         if 'N_MISSING_BLOCKS' in comments:
             missing_blocks = int(str(comments).split('=')[1])
     
@@ -99,13 +100,14 @@ def holes(filename,base,mission):
         y_coord = hdr['naxis2'] / 2.
         missing_blocks = 0
         missing_vals = 0
+        blank_val = -100000
 
     y_ind,x_ind = np.indices((hdr['naxis1'],hdr['naxis2']))
     rsquared = (x_ind - x_coord)**2 + (y_ind - y_coord)**2
     
-    matches_MDI_HMI = ['mdi', '96m', 'hmi', '720s'] #'MDI' #in original downloaded files prior to renaming
+    matches_MDI_HMI_AIA = ['mdi', '96m', 'hmi', '720s', 'aia'] #'MDI' #in original downloaded files prior to renaming
     
-    if ('efz' in filename) or ('aia' in filename): #good for all SOHO EIT and think that this also should work for SDO AIA products 
+    if ('efz' in filename): #good for all SOHO EIT and think that this also should work for SDO AIA products 
         rad = x_coord*np.sqrt(2)
         indices = np.where(rsquared.flatten() < rad**2)[0]
         zeros_ind = np.where(data.flatten()[indices] == 0.)[0]
@@ -118,16 +120,17 @@ def holes(filename,base,mission):
         else:
             return False #can use this image
     
-    elif any([x in filename for x in matches_MDI_HMI]):
+    elif any([x in filename for x in matches_MDI_HMI_AIA]):
         rad1 = float(x_coord)
         rad2 = 0.6*float(x_coord)
         indices_rad1 = np.where(rsquared.flatten() < rad1**2)[0]
         indices_rad2 = np.where(rsquared.flatten() < rad2**2)[0]
         zeros_ind = np.where(data.flatten()[indices_rad1] == 0.)[0]
         nan_ind = np.where(data.flatten()[indices_rad2] != data.flatten()[indices_rad2])[0]
+        blank_ind = np.where(data.flatten()[indices_rad2] == blank_val)[0]
         zeros_nan_ind_len = len(list(zeros_ind) + list(nan_ind))
         
-        if (len(nan_ind) > 100) or (missing_vals > 0): #only nan_ind for calibrated JSOC MDI images which can have many zeros #worked for uncalibrated images: zeros_nan_ind_len > 100:
+        if (len(nan_ind) > 100) or (missing_vals > 0) or (len(blank_ind) > 100): #only nan_ind for calibrated JSOC MDI images which can have many zeros #worked for uncalibrated images: zeros_nan_ind_len > 100:
             return True #so image not useable as there are holes
         else:
             return False #can use this image
@@ -294,8 +297,8 @@ Used SunPy's Fido to search for the user specified products
 def product_search(base,time_range,client,mission):
 
     #drms_product_matches = ['MDI', 'HMI', 'AIA']
-    euv_matches = [94, 131, 171, 193, 211, 304, 335] 
-    uv_matches = [1600, 1700]
+    euv_matches = ['94', '131', '171', '193', '211', '304', '335'] 
+    uv_matches = ['1600', '1700']
     
     if 'EIT' in base:
         wavelen = int(base[3:6])
@@ -473,8 +476,8 @@ def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir,email,a
         ts_for_DRMS = '_'.join(str(time_range_for_DRMS.start).split(' '))+'_TAI'
         tf_for_DRMS = '_'.join(str(time_range_for_DRMS.end).split(' '))+'_TAI'
         
-        euv_matches = [94, 131, 171, 193, 211, 304, 335] 
-        uv_matches = [1600, 1700]
+        euv_matches = ['94', '131', '171', '193', '211', '304', '335'] 
+        uv_matches = ['1600', '1700']
                 
         if (fits_headers == 'Y') or (fits_headers == 'y'):
             
@@ -524,9 +527,15 @@ def product_retriever(base,product_results,indiv_ind,url_prefix,home_dir,email,a
             #else:
                 #query_result = []
 
-        query_result_pre = client_export_drms.download(out_dir,0) #always the first elemement since just downloading one MDI image at a time
-        query_result = list(query_result_pre.download)
-                        
+        if client_export_drms.status == 0:
+            query_result_pre = client_export_drms.download(out_dir,0) #always the first elemement since just downloading one MDI image at a time
+            query_result = list(query_result_pre.download)
+        
+        elif client_export_drms.status != 0:
+            query_result_pre = []
+            query_result = []
+                            
+        
         if (all_size_sieved_times_pre != []) and (query_result == []):
             print('sleep for 15 minutes and then retry DRMS download')
             time.sleep(900) 
