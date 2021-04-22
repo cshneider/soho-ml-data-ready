@@ -105,8 +105,14 @@ def main(date_start, date_finish, time_step, home_dir, bases, option, mission): 
         for i,base in tqdm(enumerate(base_list)): #loop to make time_diff set
             base = base.strip(' ')
             cube_data_pre, cube_dim = cube_data_reader(home_dir, base, mission, pattern = f'*{base}*{mission}*[!sync].h5')
-            cube_data_diff = cube_data_pre[1:] - cube_data_pre[:-1]
-            cube_data = cube_data_diff[ind_lasco_principal_Fcorona_24h] #don't need the +1 here as for the times since this is the difference cube
+            
+            if ('LASCO' in base):
+                cube_data_diff = cube_data_pre[1:] - cube_data_pre[:-1]
+                cube_data = cube_data_diff[ind_lasco_principal_Fcorona_24h] #don't need the +1 here as for the times since this is the difference cube
+            
+            else:
+                cube_data = cube_data_pre[ind_lasco_principal_Fcorona_24h+1]           
+            
             cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, slice_start_ind_list[i], slice_end_ind_list[i], synch_time_inds_list_mod[i][ind_lasco_principal_Fcorona_24h+1], date_start, date_finish, time_step_prev, time_step, mission, flag_lasco) #adding one to get to original time value since was taking differce of the time array
             csv_time_sync_writer(home_dir, base, base_list_len, date_start, date_finish, cube_dim, synch_time_list_mod[i][ind_lasco_principal_Fcorona_24h+1], time_step_prev, time_step, mission, flag_lasco)
             #adding one to get to original time value since was taking differce of the time array
