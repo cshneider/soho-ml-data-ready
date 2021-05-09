@@ -139,7 +139,7 @@ def main(date_start, date_finish, image_size_output, time_window, flag, home_dir
         print(f'{base} blobs_list', blobs_list)        
         print(f'{base} unreadable_file_ids_product_list_global:', unreadable_file_ids_product_list_global)
 
-        data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image_size_output, lev1_LASCO, mission)
+        data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image_size_output, lev1_LASCO, mission, fits_headers)
         
         end_process_time = process_time()
         time_of_process = end_process_time - start_process_time
@@ -148,7 +148,7 @@ def main(date_start, date_finish, image_size_output, time_window, flag, home_dir
     
 if __name__ == '__main__':
     import argparse
-    parser_args = argparse.ArgumentParser(description='SOHO ML Data experiment parameters')
+    parser_args = argparse.ArgumentParser(description='Mission ML Data experiment parameters')
     parser_args.add_argument('--date_start', metavar='time', required=True, help='yyyy-mm-dd, 1996-01-01 is earliest start', type = str)
     parser_args.add_argument('--date_finish', metavar='time', required=True, help='yyyy-mm-dd, 2011-05-01 is recommended latest finish for SOHO mission, select a max range of 2 months', type = str)
     parser_args.add_argument('--image_size_output', metavar='image size', required=True, help='e.g., 128', type = int)

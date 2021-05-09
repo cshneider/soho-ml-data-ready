@@ -19,6 +19,7 @@ from sunpy.time import TimeRange
 
 import astropy.units as u
 from astropy.io import fits
+from astropy.io.fits import Header
 
 import h5py
 
@@ -34,16 +35,20 @@ def readfits(filename):
     hdrs = []
     try:
         ft = fits.open(filename, memmap=False)
-        ft.verify('fix')
+        ft.verify('silentfix+ignore') #ft.verify('fix')-> this gives Unfixable error for card
+        
+        ##hdr = ft[0].header #[0] for the original large file, #when file written, there is a second header [1] which contains the new axes info automatically
+        ##data = ft[0].data        
         for i in range(len(ft)):
             hdrs.append(ft[i].header)
+            
             hdr = ft[i].header
             data = ft[i].data
-            #print(np.shape(data))
             
-        axis1 = hdr['naxis1']
+        axis1 = hdr['naxis1'] #hdr will be hdr[0] for original large file and hdr[1] for downsampled file since comes from the for loop with i=1 after downsampling!
         axis2 = hdr['naxis2']
         axisnum = hdr['naxis']
+        
         ft.close()
         
     except ValueError:
@@ -58,12 +63,13 @@ def readfits(filename):
 """
 Writes a fits file while preserving the header metadata
 """
-def writefits(filename, data, hdrs, home_dir):
+def writefits(filename, data, hdrs, home_dir): #hdrs
     if not os.path.exists(f'{home_dir}{filename}.fits'):
-        hdrprimary = fits.PrimaryHDU(header=hdrs[len(hdrs)-1])
+        hdrprimary = fits.PrimaryHDU(header=hdrs[len(hdrs)-1]) #header=hdrs[len(hdrs)-1]) #header=hdr
         fitsimg = fits.ImageHDU(data)
         hdul = fits.HDUList([hdrprimary, fitsimg])
-        hdul.writeto(f'{home_dir}{filename}.fits', 'silentfix+ignore')
+        hdul.writeto(f'{home_dir}{filename}.fits', 'silentfix+ignore') #output_verify='ignore' i think would also work
+        
         hdul.close() #added this line
 
 """
@@ -73,7 +79,10 @@ def holes(filename,base,mission):
     
     #filename = str(filename)
     ft = fits.open(filename, memmap=False)  
-    ft.verify('fix')  
+    ft.verify('silentfix+ignore') #ft.verify('fix')-> this gives Unfixable error for card 
+    
+    #hdr = ft[0].header
+    #data = ft[0].data
     
     if ('MDI' in base) or (mission == 'SDO'):
         hdr = ft[1].header
@@ -261,10 +270,102 @@ def data_name_selector(home_dir, base, date_start, date_finish, mission):
         
     return time_start_name_new, time_finish_name_new
 
+
+"""
+Downsample FITS header using the FITS convention correspomnding to the downsampling of image
+Based on Ajay's code for metadata seeding HDF5 cubes
+"""
+def downsample_header(header_content, image_size_output, base, mission, fits_headers):
+
+    header_content_new = header_content[0].copy() #header_content[0] because header_content is a list of two headers, [0] is original file and [1] is the downsampled file header
+    
+    if mission == 'SOHO': 
+        orig_img_size = 1024
+    
+    elif mission == 'SDO':     
+        orig_img_size = 4096
+    
+    rescale_factor = int(orig_img_size / image_size_output)
+    print('rescale_factor:', rescale_factor)
+    
+    if (('MDI' in base) or ('HMI' in base)) and ((fits_headers == 'Y') or (fits_headers == 'y')):
+        header_content_new.update(CDELT1 = header_content_new['CDELT1']*rescale_factor, CDELT2 = header_content_new['CDELT2']*rescale_factor)
+        header_content_new.update(CRPIX1 = header_content_new['CRPIX1']/rescale_factor, CRPIX2 = header_content_new['CRPIX2']/rescale_factor)
+        header_content_new['COMMENT'] = f'Zeros outside solar disk for {base}'
+        
+        try: 
+            header_content_new.update(RSUN_OBS = header_content_new['RSUN_OBS']/rescale_factor, R_SUN = header_content_new['R_SUN']/rescale_factor)
+            header_content_new.update(X0 = header_content_new['X0']/rescale_factor, Y0 = header_content_new['Y0']/rescale_factor)
+            header_content_new.update(CROP_RAD = header_content_new['CROP_RAD']/rescale_factor)
+            header_content_new.update(SOLAR_R = header_content_new['SOLAR_R']/rescale_factor)            
+        
+        except KeyError:
+            pass
+        
+    elif (('MDI' in base) or ('HMI' in base)) and ((fits_headers == 'N') or (fits_headers == 'n')):
+        header_content_new['COMMENT'] = f'Zeros outside solar disk for {base}'
+    
+    else:
+        header_content_new.update(CDELT1 = header_content_new['CDELT1']*rescale_factor, CDELT2 = header_content_new['CDELT2']*rescale_factor)
+        header_content_new.update(CRPIX1 = header_content_new['CRPIX1']/rescale_factor, CRPIX2 = header_content_new['CRPIX2']/rescale_factor)
+        #header_content_new['COMMENT'] = f'testing that can comment on this {base}'
+        
+        try: 
+            header_content_new.update(RSUN_OBS = header_content_new['RSUN_OBS']/rescale_factor, R_SUN = header_content_new['R_SUN']/rescale_factor)
+            header_content_new.update(X0 = header_content_new['X0']/rescale_factor, Y0 = header_content_new['Y0']/rescale_factor)
+            header_content_new.update(CROP_RAD = header_content_new['CROP_RAD']/rescale_factor)
+            header_content_new.update(SOLAR_R = header_content_new['SOLAR_R']/rescale_factor)
+                
+        except KeyError:
+            pass            
+    
+    #print('header_content_new:', header_content_new)
+    #print('list(header_content_new.keys()):', list(header_content_new.keys()))
+    #print('list(header_content_new.values()):', list(header_content_new.values()))
+    
+    #header_content_new_keys = list(header_content_new.keys())
+    #header_content_new_vals = list(header_content_new.values())
+    
+    return header_content_new #header_content_new_keys, header_content_new_vals #header_content_new
+
+"""
+Downsample FITS header using the FITS convention correspomnding to the downsampling of image 
+for the case of retroactively seeding MDI and HMI data cubes with metadata since fits protocol is presently time consuming on JSOC 
+"""
+def downsample_header_local(mission, image_size_output, query, mag_keys):
+    
+    if mission == 'SOHO': 
+        orig_img_size = 1024
+
+    elif mission == 'SDO':     
+        orig_img_size = 4096
+
+    rescale_factor = int(orig_img_size / image_size_output)
+    #print('rescale_factor:', rescale_factor)
+
+    for key in mag_keys:
+        if (key == 'CDELT1') or (key == 'CDELT2'):
+            query[key] = query[key]*rescale_factor #this updates the original data frame, #originally had query[key][0] with [0] here and on every variable here below
+        elif (key == 'CRPIX1') or (key == 'CRPIX2'):
+            query[key] = query[key]/rescale_factor
+        
+        try: 
+            query['RSUN_OBS'] = query['RSUN_OBS']/rescale_factor 
+            query['R_SUN'] = query['R_SUN']/rescale_factor
+            query['X0'] = query['X0']/rescale_factor 
+            query['Y0'] = query['Y0']/rescale_factor 
+            query['CROP_RAD'] = query['CROP_RAD']/rescale_factor
+            query['SOLAR_R'] = query['SOLAR_R']/rescale_factor 
+             
+        except KeyError:
+            pass       
+    
+    return query
+
 """
 Generated a compressed h5py data cube from all fits files present in a product folder
 """
-def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image_size_output, lev1_LASCO, mission):
+def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image_size_output, lev1_LASCO, mission, fits_headers):
 
     filepath = home_dir + base + f'_{mission}' + '/'
 
@@ -273,22 +374,51 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image
     data_files = np.sort(data_files_pre) #to have chronological order and to sink order with list of individual product times
 
     data_content_list = []
+    
+    header_down_list = []
+    #header_down_key_list=[]
+    #header_down_val_list=[]
+    
     for elem in data_files:
         axdim1,axdim2,data_content,header_content,axisnum = readfits(f'{filepath}{elem}')
+        hdr_down = downsample_header(header_content, image_size_output, base, mission, fits_headers) # hdr_down_keys, hdr_down_vals
         if f'{mission}' in elem:
             data_content_list.append(data_content)
+            header_down_list.append(hdr_down)
+            #header_down_key_list.append(hdr_down_keys)
+            #header_down_val_list.append(hdr_down_vals)
 
     if data_content_list:
         data_content_stack = np.stack(data_content_list)
+        header_down_stack = np.stack(header_down_list) #was commented out 
     else:
         data_content_stack = []
+        header_down_stack = [] #was commented out 
                   
     time_start_name_new, time_finish_name_new = data_name_selector(home_dir, base, date_start, date_finish, mission)
         
-    data_cube = h5py.File(f'{home_dir}{time_start_name_new}_to_{time_finish_name_new}_{base}_{flag}_{time_window}_LASCOlev1-{lev1_LASCO}_{mission}_{image_size_output}.h5', 'w')
+    data_cube = h5py.File(f'{home_dir}{time_start_name_new}_to_{time_finish_name_new}_{base}_{flag}_{time_window}_LASCOlev1-{lev1_LASCO}_{mission}_{image_size_output}_metadata.h5', 'w')
+    ##########data_cube_group = data_cube.create_group(f'{base}_{mission}_{image_size_output}')
     data_cube.create_dataset(f'{base}_{mission}_{image_size_output}', data=data_content_stack, compression="gzip")
+    
+    print('len(header_down_list):', len(header_down_list))
+    ##########data_cube_group.create_dataset('header', data=header_down_stack.tostring(), compression="gzip")
+    
+    
+    ########## HDF5 attributes method ########
+    #'''
+    #key_counter = 0
+    for i in range(len(header_down_list)):
+        for j,key in enumerate(list(header_down_list[i].keys())): #list(header_content_new.keys())):
+            if (key == 'COMMENT') or (key == 'HISTORY'): #since 'COMMENTS' and 'HISTORY' can occur multiple times so modifying with 'key_counter' to make them unique per image slice
+                key = f'{key}{i}' #{key_counter}                  
+            data_cube.attrs[f'{key}_{i}'] = list(header_down_list[i].values())[j] #list(header_content_new.values())[j] ########data_cube[i]
+        #key_counter += 1            
+    ###data_cube.create_dataset(f'{base}_{mission}_{image_size_output}_header', data=header_down_stack, compression="gzip") #first try approach
+    #'''
+    
     data_cube.close()
-                            
+    
     return data_cube
 
 """

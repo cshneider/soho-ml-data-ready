@@ -2,11 +2,6 @@
 
 Generate and temporally sync SoHO and/or SDO Mission image products to make a standardized machine-learning-ready data set.
 
-## Flowchart for Software Framework
-![Software_Framework](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg)
-## Flowchart for ML experiments 
-![ML_Experiments](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Step3.jpeg)
-
 ## Instructions
 
 1. wget https://repo.anaconda.com/archive/Anaconda3-2020.11-Linux-x86_64.sh
@@ -34,7 +29,7 @@ Mission\_Data\_Gen experiment parameters:
 | --flag 			   | Resize strategy. Choose from either "subsample", "interp", "minpool", or "maxpool". |
 | --home_dir           | Home directory, e.g., "/home/user/Documents/", need "/" in the end. |
 | --products           | Product types. Enter all the following or a subset thereof, in any order, seperated by commas. For the SoHO mission: "EIT195, MDI\_96m, LASCO\_C2, LASCO\_C3, EIT171, EIT304, EIT284" and for the SDO mission: "HMI_720s, AIA94, AIA131, AIA171, AIA193, AIA211, AIA304, AIA335, AIA1600, AIA1700, AIA4500". |
-| --fits_headers       | Include header metadata in individual FITS files? Y/y or N/n. Applies to MDI calibrated data only from JSOC. Required argument. Faster download without header metadata. | 
+| --fits_headers       | Include header metadata in individual FITS files? Y/y or N/n. Applies primarily to MDI and HMI data from JSOC. Required argument. Faster download without header metadata. | 
 | --lev1_LASCO		   | Whether to use level 1 LASCO C2 and C3? Y/y or N/n. If no, then level 0.5 LASCO will be used. Required argument. |
 | --email 		   | User's email. Required by DRMS for the JSOC Client in order to have DRMS obtain the calibrated MDI products and all SDO mission products. |
 | --mission 		   | Choose from 'SOHO' or 'SDO'. |
@@ -83,11 +78,16 @@ NOTE: CSV files pruduced from a split time range are not merged. CSV files are p
 
 ### Detailed program description
 
-This program focuses entirely on data products obtained from the NASA SoHO (Solar and Heliospheric Observatory) mission:
+This program focuses on data products obtained from the SoHO (Solar and Heliospheric Observatory) and Solar Dynamics Observatory (SDO) missions:
 
 * MDI (Michelson Doppler Imager) @ 96 minute cadence
 * LASCO (Large Angle and Spectrometric Coronagraph): C2 (1.5 - 6 solar radii) and C3 (3.7 to 30 solar radii)
 * EIT (Extreme ultraviolet Imaging Telescope) @ 171, 195, 284, 304 Angstroms)
+
+and
+
+* HMI (Helioseismic and Magnetic Imager) @ 12 minute cadence
+* AIA (Atmospheric Imaging Assembly) See `Including Solar Dynamics Observatory (SDO) NASA mission data products' section here below on more details.
 
 This program returns up to 7 folders, as specified by the user, which are named after their respective products that are queried with SunPy's Federated Internet Data Obtainer (Fido) and the Data Record Management System (DRMS) Python package. The DRMS is a system that was developed by the Joint Science Operation Center (JSOC).
 
@@ -161,6 +161,9 @@ Without any filters, LASCO\_C2 had 18.737 files and took ~7 hrs and LASCO\_C3 ha
 
 **The current MDI\_96m images are obtained from JSOC with DRMS which has a longer run time than using wget to obtain MDI_96m images from SDAC - these are no longer available.
 The reported time of ~25 hrs is with the option of not having extended FITS headers included. Including this metadata will contribute to a longer run time. 
+A better solution is to retroactively seed the MDI and HMI data cubes with their respective metadata. That is selecting 'N/n' for `fits_headers' and after the datacube has been made and the 
+csv file with the times generated, then to use the `Retroactive metadata seeding' Jupyter notebook or eponymous script to include the metadata as an HDF5 attribute. The original HDF5 data cube
+is copied and not gzipped so that the metadata can be efficiently added to it. The process takes several days but is faster than including the FITS protocol option.
 
 ***Previously, used wget to obtain MDI_96m from VSO SDAC with 18.426 files and took ~7 hrs for 01.01.1996 - 01.05.2011.
 
@@ -197,14 +200,54 @@ It is suggested not to use the explicit export method with "(method='url', proto
 | SDO Product | ETA* (hrs)| 
 | -------------| --------|
 | HMI 		| ~100    |
-| AIA visible  | ~25     |
-| AIA UV**  	| ~25     |
-| AIA EUV** 	| ~25     |
+| AIA visible  | ~50     |
+| AIA UV**  	| ~50     |
+| AIA EUV** 	| ~50     |
 
 *Estimated time of arrival for SDO mission products from 2010-2020 at a cadence of every 6 hours with no explicit call to include FITS metadata.
 **ETA per AIA EUV/UV product. These estimates are from a combination of the file size and high natural cadence (12s/24s) coupled with the 100 GB DRMS export limit. 
 This previosuly resulted in a maximum internal time step of 1 day rather the 60 day time step used for the SOHO mission and for SDO HMI and SDO AIA 4500. 
 Now, using @{time_window}h in DRMS to shorten the export.  
+
+## Retroactive_metadata_seeding.py
+
+Takes in original MDI and HMI data cube obtained without using the FITS protocol from JSOC and retroactively obtains metadata from JSOC and seeds the cube with these keywords as an attribute to HDF5.
+Also takes in the corresponding csv times file in order to fetch the corresponding metadata usign DRMS query. This process may take several days (roughly 3 days for an MDI cube composed of 15456 files)
+but this is still faster than using the FITS protocol with JSOC which can take 15 minutes per FITS file seen using the setup here. 
+
+Retroactive\_metadata\_seeding parameters:
+
+| Input 			     | Description |
+| ---------------------  | ---------------------------------------------------- |
+| -h, --help             | Show this help message and exit. |
+| --image\_size\_output  | Image size originally used (e.g., 128x128). |
+| --cube\_dir            | MDI or HMI cube path, e.g., "/home/user/Documents/", need "/" in the end. |
+| --cube\_name	          | Name of .h5 cube, e.g., 1999-02-02-16:00:00\_to\_2011-01-01-00:00:00\_MDI\_96m\_subsample\_6\_LASCOlev1-N\_SOHO\_128.h5 |
+| --product              | MDI\_96m or HMI\_720s |
+| --mission 		     | Choose from 'SOHO' or 'SDO'. |
+
+### Input 
+- 1999-02-02-16:00:00_to_2011-01-01-00:00:00\_MDI\_96m\_subsample\_6\_LASCOlev1-N\_SOHO\_128.h5
+- 1999-01-01\_to\_2010-12-31\_MDI\_96m\_times\_subsample\_6\_LASCOlev1-N\_SOHO\_128.csv
+### Output
+- 1999-02-02-16:00:00\_to\_2011-01-01-00:00:00\_MDI\_96m\_subsample\_6\_LASCOlev1-N\_SOHO\_128\_with_metadata.h5
+
+__Metadata__
+The FITS header metadata has been transferred to the HDF5 files and has been updated to account for the scale factor downsampling for several variables:
+CDELT1, CDELT2, CRPIX1, CRPIX2 are always updated when they are present. 
+RSUN\_OBS, R\_SUN, X0, Y0, and CROP_RAD or SOLAR\_R is updated when present. 
+
+It can be accessed in the following way:
+
+```python
+import h5py
+cube = h5py.File('file_name.h5','r')
+data = cube[f'{Mission_Product_name}_{Mission}_{Output_dimension}'][:]
+cube_metadata = list(cube.attrs.items())
+```
+The cube\_metadata has a dictionary like appearance and can be easily converted to an actual dictionary with key,value pairs.
+The FITS standard keywords appearing in cube\_metadata have an extra `_SliceNumber' appended to indicate what slice they belong to. 
+So CRPIX1\_0 would correspond to CRPIX1 of the first slice and so forth.
 
 ## Mission_Product_Sync.py
 This is the companion script to \Mission\_Data\_Gen.py to synchronize the times between the specified data products once they have all been downloaded from the VSO and pre-processed.

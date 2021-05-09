@@ -9,6 +9,8 @@ from dateutil import parser
 
 from sunpy.time import TimeRange
 
+from astropy.io.fits import Header
+
 import h5py
 import csv
 from tqdm import tqdm
@@ -174,9 +176,17 @@ def cube_data_reader(home_dir, base, mission, pattern):
                 
     cube = h5py.File(f'{home_dir}{name}', 'r')
     cube_data = cube[f'{base}_{mission}_{cube_dim}'][:]
+    
+    #cube_data = cube[f'{base}_{mission}_{cube_dim}/data'][:]    
+    #cube_hdr = cube[f'{base}_{mission}_{cube_dim}/header'][:].asstr(encoding = 'utf-8') #_header'][:]
+    
+    ### meta_items method ###
+    meta_items = list(cube.attrs.items())
+    print('len(meta_items):', len(meta_items))
+    
     cube.close()
 
-    return cube_data, cube_dim
+    return cube_data, cube_dim, meta_items ### meta_items #, str(cube_hdr) ???????
     
 
 """
@@ -263,24 +273,63 @@ def lasco_diff_times_inds(lasco_sync_times):
 
 """
 OUTPUTS DATA CUBES FOR EACH SPECIFIED PRODUCT. THESE CUBES ARE THE REDUCED VERSIONS OF THE ORIGINAL ONES SINCE ONLY THE TIME SLICES THAT COME WITHIN THE SPECIFIED TIME_STEP HAVE BEEN RETAINED.
+#cube_hdr method previously tried where meta_items replaced by cube_hdr
 """
-def cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, ind_start, ind_end, synch_time_inds_mod, date_start, date_finish, time_step_prev, time_step, mission, flag_lasco=None):
 
+def cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, meta_items, ind_start, ind_end, synch_time_inds_mod, date_start, date_finish, time_step_prev, time_step, mission, flag_lasco=None):
+
+     ### Fetching the metadata from the pre-synced data cubes ###
+          
+     ### meta-data method ###
+     meta_list_transpose = np.transpose(meta_items)[0] #these are the pseudo dict keys from the HDF5 attributes containing the FITS metadata!
+          
+     metadata_keywords = []
+     for ind in synch_time_inds_mod:
+          slice_attr = list(filter(lambda x: f'_{ind}' in x, meta_list_transpose)) #list of attr corresponding to slice
+          meta_ind_start = np.where(np.array(slice_attr[0]) == meta_list_transpose)[0][0]
+          meta_ind_fin = np.where(np.array(slice_attr[len(slice_attr)-1]) == meta_list_transpose)[0][0]
+          metadata_keywords += list(meta_items[meta_ind_start:meta_ind_fin+1])
+     print('len(metadata_keywords):', len(metadata_keywords))
+     
+               
      if flag_lasco is None:
           cube_data_mod_pre_pre = cube_data[ind_start:ind_end+1]
           cube_data_mod_pre = np.array([cube_data_mod_pre_pre[i] for i in synch_time_inds_mod])
           cube_data_mod = cube_data_mod_pre.astype('int16')
-               
-          cube_sync = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{mission}_{base_list_len}products_{time_step_prev}_{time_step}_{cube_dim}_sync.h5', 'w')
+          
+          ### This first method of writing metadata didn't work since HDF5 doesn't accept unicode; only byte strings
+          #cube_hdr_mod_pre_pre = cube_hdr[ind_start:ind_end+1]
+          #cube_hdr_mod_pre = [cube_hdr_mod_pre_pre[i] for i in synch_time_inds_mod]
+          #cube_hdr_mod = np.stack(cube_hdr_mod_pre)
+          
+          cube_sync = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{mission}_{base_list_len}products_{time_step_prev}_{time_step}_{cube_dim}_metadata_sync.h5', 'w')
+          #cube_sync_group = cube_sync.create_group(f'{base}_{mission}_{cube_dim}')
           cube_sync.create_dataset(f'{base}_{mission}_{cube_dim}', data=cube_data_mod) #not compressing images here since images compressed initially in data generation step #compression="gzip"
-          cube_sync.close()
-     
+          #cube_sync_group.create_dataset('header', data=cube_hdr_mod.tostring()) #not compressing images here since images compressed initially in data generation step #compression="gzip"          
+          #cube_sync.create_dataset(f'{base}_{mission}_{cube_dim}_header', data=cube_hdr_mod)
+          
      else:
           cube_data_mod = cube_data.astype('int16')
           
-          cube_sync = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{flag_lasco}_{mission}_{base_list_len}products_{time_step_prev}_{time_step}_{cube_dim}_sync.h5', 'w')
+          cube_sync = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{base}_{flag_lasco}_{mission}_{base_list_len}products_{time_step_prev}_{time_step}_{cube_dim}_metadata_sync.h5', 'w')
+          #cube_sync_group = cube_sync.create_group(f'{base}_{mission}_{cube_dim}')
           cube_sync.create_dataset(f'{base}_{mission}_{cube_dim}', data=cube_data_mod) #not compressing images here since images compressed initially in data generation step #compression="gzip"
-          cube_sync.close()     
+          #cube_sync_group.create_dataset('header', data=cube_hdr.tostring())
+          #cube_sync.create_dataset(f'{base}_{mission}_{cube_dim}_header', data=cube_hdr)
+          
+     ### metadata method continued ###
+     slice_val_start = int(metadata_keywords[0][0].split('_')[-1])
+     print('slice_val_start:', slice_val_start)
+     
+     slice_counter = 0
+     for met in metadata_keywords:
+          if int(met[0].split('_')[-1]) > slice_val_start:
+               slice_val_start = int(met[0].split('_')[-1]) #update slice_val_start to the next slice
+               slice_counter +=1 #update to count next slice in sync cube
+          cube_sync.attrs[f'{met[0]}_syncslice{slice_counter}'] = met[1]
+     print('data cube slice count:', slice_counter)
+          
+     cube_sync.close()     
      
      return cube_sync
      

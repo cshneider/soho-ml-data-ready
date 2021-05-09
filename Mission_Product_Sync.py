@@ -19,7 +19,7 @@ def main(date_start, date_finish, time_step, home_dir, bases, option, mission): 
     for base in base_list:
         base = base.strip(' ')
         
-        time_step_prev = time_step_prev_reader(home_dir, pattern = f'*{base}*{mission}*[!sync].h5')
+        time_step_prev = time_step_prev_reader(home_dir, pattern = f'*{base}*{mission}*metadata*[!sync].h5')
         print('time_step_prev:', time_step_prev)
         
         if (option == 'Y') or (option == 'y'): #so deal with .fits files since contain all info that need such as the time and dim. additionally have h5 cube and csv file too.
@@ -70,8 +70,8 @@ def main(date_start, date_finish, time_step, home_dir, bases, option, mission): 
     
     for i,base in tqdm(enumerate(base_list)):
         base = base.strip(' ')
-        cube_data, cube_dim = cube_data_reader(home_dir, base, mission, pattern = f'*{base}*{mission}*[!sync].h5')
-        cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, slice_start_ind_list[i], slice_end_ind_list[i], synch_time_inds_list_mod[i], date_start, date_finish, time_step_prev, time_step, mission)
+        cube_data, cube_dim, meta_items  = cube_data_reader(home_dir, base, mission, pattern = f'*{base}*{mission}*metadata*[!sync].h5') #, cube_hdr #, meta_items
+        cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, meta_items, slice_start_ind_list[i], slice_end_ind_list[i], synch_time_inds_list_mod[i], date_start, date_finish, time_step_prev, time_step, mission) ###cube_dim, cube_hdr, ##### cube_dim, meta_items
         csv_time_sync_writer(home_dir, base, base_list_len, date_start, date_finish, cube_dim, synch_time_list_mod[i], time_step_prev, time_step, mission)
         
         if 'LASCO' in base:
@@ -104,7 +104,7 @@ def main(date_start, date_finish, time_step, home_dir, bases, option, mission): 
             
         for i,base in tqdm(enumerate(base_list)): #loop to make time_diff set
             base = base.strip(' ')
-            cube_data_pre, cube_dim = cube_data_reader(home_dir, base, mission, pattern = f'*{base}*{mission}*[!sync].h5')
+            cube_data_pre, cube_dim, meta_items = cube_data_reader(home_dir, base, mission, pattern = f'*{base}*{mission}*metadata*[!sync].h5') #, cube_hdr #, meta_items
             
             if ('LASCO' in base):
                 cube_data_diff = cube_data_pre[1:] - cube_data_pre[:-1]
@@ -113,7 +113,7 @@ def main(date_start, date_finish, time_step, home_dir, bases, option, mission): 
             else:
                 cube_data = cube_data_pre[ind_lasco_principal_Fcorona_24h+1]           
             
-            cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, slice_start_ind_list[i], slice_end_ind_list[i], synch_time_inds_list_mod[i][ind_lasco_principal_Fcorona_24h+1], date_start, date_finish, time_step_prev, time_step, mission, flag_lasco) #adding one to get to original time value since was taking differce of the time array
+            cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, meta_items, slice_start_ind_list[i], slice_end_ind_list[i], synch_time_inds_list_mod[i][ind_lasco_principal_Fcorona_24h+1], date_start, date_finish, time_step_prev, time_step, mission, flag_lasco) #adding one to get to original time value since was taking differce of the time array ###cube_dim, cube_hdr, #####cube_dim, meta_items
             csv_time_sync_writer(home_dir, base, base_list_len, date_start, date_finish, cube_dim, synch_time_list_mod[i][ind_lasco_principal_Fcorona_24h+1], time_step_prev, time_step, mission, flag_lasco)
             #adding one to get to original time value since was taking differce of the time array
             
@@ -127,7 +127,7 @@ def main(date_start, date_finish, time_step, home_dir, bases, option, mission): 
 
 if __name__ == '__main__':
     import argparse
-    parser_args = argparse.ArgumentParser(description='SOHO Products Synchronization')
+    parser_args = argparse.ArgumentParser(description='Mission Products Synchronization')
     parser_args.add_argument('--date_start', metavar='time', required=True, help='yyyy-mm-dd, 1996-01-01 is earliest start', type = str)
     parser_args.add_argument('--date_finish', metavar='time', required=True, help='yyyy-mm-dd, 2011-05-01 is recommended latest finish for SOHO mission', type = str)
     parser_args.add_argument('--time_step', metavar='time', required=True, help='int, time step in hours', type = int) #was previously time_window
