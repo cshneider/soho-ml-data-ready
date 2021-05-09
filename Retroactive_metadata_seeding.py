@@ -16,7 +16,7 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
     warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
     ### This put all the FITS header keywords, for all the MDI or HMI data products available in a pandas dataframe called mag_keys. ###
-    ### This part takes like 10 minutes ### 
+    ### This part takes about 10 minutes ### 
     
     client = drms.Client()
     query_mag = 'mdi.fd_M_96m_lev182[]' ### or ('hmi.M_720s') if want SDO HMI instead of SOHO MDI
@@ -30,7 +30,7 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
     print('mission:', mission)
 
     mag_keys_list = list(client.keys('mdi.fd_M_96m_lev182')) #or ('hmi.M_720s') if want SDO HMI instead of SOHO MDI
-    print('np.shape(mag_keys_list):', np.shape(mag_keys_list))
+    print('mag_keys_list:', mag_keys_list)
 
     cube_orig = h5py.File(f'{path_to_mag_cube}{mag_cube_name}','r') 
     print(list(cube_orig.keys()))
@@ -54,7 +54,7 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
     data_cube_new.create_dataset(f'{base}_{mission}_{image_size_output}_metadata', data=cube_orig_data, compression="gzip")
 
     counter = 0
-    for t_pre in tqdm(times_list): #times_list[0:2]
+    for t_pre in tqdm(times_list[0:2]): #times_list[0:2]
         
         t_drms_split = str(drms.to_datetime(t_pre)).split(' ')
         t_tai = '_'.join((t_drms_split[0].replace('-','.'),t_drms_split[1]))+'_TAI'
@@ -65,8 +65,8 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
         query_pre = mag_keys.loc[mag_keys['T_REC'] == t_tai]
         query = mag_keys.loc[query_pre.index[0]]
         
-        query_metadata_update = downsample_header_local(mission, image_size_output, query, mag_keys_list)
-        for j, key in enumerate(mag_keys_list):
+        query_metadata_update = downsample_header_local(mission, image_size_output, query, mag_keys)
+        for j, key in enumerate(mag_keys):
             if (key == 'COMMENT') or (key == 'HISTORY'):
                 key1 = f'{key}{counter}'
                 data_cube_new.attrs[f'{key1}_{counter}'] = query_metadata_update[key]     
