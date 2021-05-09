@@ -50,7 +50,6 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
     mag_cube_name_new = full_mag_cube_name.split('.')[0] + '_retroactive_metadata.h5'
     print(mag_cube_name_new)
 
-    ### Not gzipping here as this speeds up metadata seeding. So compromize in terms of size taken up by the cube ###
     data_cube_new = h5py.File(mag_cube_name_new,'w')
     data_cube_new.create_dataset(f'{base}_{mission}_{image_size_output}_metadata', data=cube_orig_data, compression="gzip")
 
