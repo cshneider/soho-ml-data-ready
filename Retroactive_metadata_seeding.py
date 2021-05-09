@@ -54,7 +54,7 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
     data_cube_new.create_dataset(f'{base}_{mission}_{image_size_output}_metadata', data=cube_orig_data, compression="gzip")
 
     counter = 0
-    for t_pre in tqdm(times_list[0:2]): #times_list[0:2]
+    for t_pre in tqdm(times_list):
         
         t_drms_split = str(drms.to_datetime(t_pre)).split(' ')
         t_tai = '_'.join((t_drms_split[0].replace('-','.'),t_drms_split[1]))+'_TAI'
