@@ -245,6 +245,15 @@ cube = h5py.File('file_name.h5','r')
 data = cube[f'{Mission_Product_name}_{Mission}_{Output_dimension}'][:]
 cube_metadata = list(cube.attrs.items())
 ```
+
+Using JSON on the metadata:
+```python
+with h5py.File('file_name.h5', 'r') as hfile:
+    metadata = json.loads(hfile[f'{base}_{mission}_{image_size_output}_metadata'][()])
+    for k in metadata:
+        print('{} => {}'.format(k, metadata[k]))
+```
+
 The cube\_metadata has a dictionary like appearance and can be easily converted to an actual dictionary with key,value pairs.
 The FITS standard keywords appearing in cube\_metadata have an extra `_SliceNumber' appended to indicate what slice they belong to. 
 So CRPIX1\_0 would correspond to CRPIX1 of the first slice and so forth.

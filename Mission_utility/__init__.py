@@ -28,6 +28,22 @@ import csv
 from skimage.transform import probabilistic_hough_line
 from skimage.feature import canny, blob_log
 
+import json
+
+"""
+Encoder to solve TypeError: Object of type 'int64' is not JSON serializable from stackoverflow 
+"""
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NpEncoder, self).default(obj)
+
 """
 Checks that a fits file contains data otherwise returns unequal axes which results in such a file being discarded. 
 """

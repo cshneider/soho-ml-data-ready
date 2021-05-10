@@ -8,7 +8,8 @@ from tqdm import tqdm
 import warnings
 from pandas.core.common import SettingWithCopyWarning
 from Mission_utility.product_time_sync import csv_times_reader
-from Mission_utility import downsample_header_local
+from Mission_utility import downsample_header_local, NpEncoder
+import json
 
 def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
 
@@ -51,7 +52,7 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
     print(mag_cube_name_new)
 
     data_cube_new = h5py.File(mag_cube_name_new,'w')
-    data_cube_new.create_dataset(f'{base}_{mission}_{image_size_output}_metadata', data=cube_orig_data, compression="gzip")
+    data_cube_new.create_dataset(f'{base}_{mission}_{image_size_output}', data=cube_orig_data, compression="gzip")
 
     counter = 0
     meta_data_dict = {}
@@ -83,7 +84,9 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
         
         counter += 1
         
-    data_cube_new.attrs.update(meta_data_dict)
+    ########data_cube_new.attrs.update(meta_data_dict)
+    data_cube_new.create_dataset(f'{base}_{mission}_{image_size_output}_metadata', data=json.dumps(meta_data_dict, cls=NpEncoder))
+    data_cube_new.attrs['NOTE'] = 'JSON serialization'   
     data_cube_new.close()
 
 
