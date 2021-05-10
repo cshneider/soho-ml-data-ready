@@ -56,7 +56,7 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
     counter = 0
     meta_data_dict = {}
     
-    for t_pre in tqdm(times_list[0:2]): #[0:2] saftey check
+    for t_pre in tqdm(times_list): #[0:2] saftey check
         
         t_drms_split = str(drms.to_datetime(t_pre)).split(' ')
         t_tai = '_'.join((t_drms_split[0].replace('-','.'),t_drms_split[1]))+'_TAI'
