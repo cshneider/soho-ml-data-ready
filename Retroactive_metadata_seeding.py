@@ -54,7 +54,9 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
     data_cube_new.create_dataset(f'{base}_{mission}_{image_size_output}_metadata', data=cube_orig_data, compression="gzip")
 
     counter = 0
-    for t_pre in tqdm(times_list):
+    meta_data_dict = {}
+    
+    for t_pre in tqdm(times_list[0:2]): #[0:2] saftey check
         
         t_drms_split = str(drms.to_datetime(t_pre)).split(' ')
         t_tai = '_'.join((t_drms_split[0].replace('-','.'),t_drms_split[1]))+'_TAI'
@@ -66,15 +68,22 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
         query = mag_keys.loc[query_pre.index[0]]
         
         query_metadata_update = downsample_header_local(mission, image_size_output, query, mag_keys)
+        
         for j, key in enumerate(mag_keys):
             if (key == 'COMMENT') or (key == 'HISTORY'):
                 key1 = f'{key}{counter}'
-                data_cube_new.attrs[f'{key1}_{counter}'] = query_metadata_update[key]     
+                ##########data_cube_new.attrs[f'{key1}_{counter}'] = query_metadata_update[key] #[0]    
+                meta_data_dict[f'{key1}_{counter}'] = query_metadata_update[key]               
             else:
-                data_cube_new.attrs[f'{key}_{counter}'] = query_metadata_update[key]
-        data_cube_new.attrs[f'COMMENT_{counter}'] = f'Zeros outside solar disk for {base}'
+                ##########data_cube_new.attrs[f'{key}_{counter}'] = query_metadata_update[key] #[0]
+                meta_data_dict[f'{key}_{counter}'] = query_metadata_update[key]
+        
+        #########data_cube_new.attrs[f'COMMENT_{counter}'] = f'Zeros outside solar disk for {base}'
+        meta_data_dict[f'COMMENT_{counter}'] = f'Zeros outside solar disk for {base}'
+        
         counter += 1
-    
+        
+    data_cube_new.attrs.update(meta_data_dict)
     data_cube_new.close()
 
 
