@@ -420,18 +420,19 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image
     print('len(header_down_list):', len(header_down_list))
     ##########data_cube_group.create_dataset('header', data=header_down_stack.tostring(), compression="gzip")
     
-    
-    ########## HDF5 attributes method ########
-    #'''
+    meta_data_dict = {}
     #key_counter = 0
     for i in range(len(header_down_list)):
         for j,key in enumerate(list(header_down_list[i].keys())): #list(header_content_new.keys())):
             if (key == 'COMMENT') or (key == 'HISTORY'): #since 'COMMENTS' and 'HISTORY' can occur multiple times so modifying with 'key_counter' to make them unique per image slice
                 key = f'{key}{i}' #{key_counter}                  
-            data_cube.attrs[f'{key}_{i}'] = list(header_down_list[i].values())[j] #list(header_content_new.values())[j] ########data_cube[i]
+            meta_data_dict[f'{key}_{i}'] = list(header_down_list[i].values())[j] #list(header_content_new.values())[j] ########data_cube[i]            
+            #data_cube.attrs[f'{key}_{i}'] = list(header_down_list[i].values())[j] #list(header_content_new.values())[j] ########data_cube[i]
         #key_counter += 1            
     ###data_cube.create_dataset(f'{base}_{mission}_{image_size_output}_header', data=header_down_stack, compression="gzip") #first try approach
-    #'''
+    
+    data_cube.create_dataset(f'{base}_{mission}_{image_size_output}_metadata', data=json.dumps(meta_data_dict, cls=NpEncoder))
+    data_cube.attrs['NOTE'] = 'JSON serialization'    
     
     data_cube.close()
     

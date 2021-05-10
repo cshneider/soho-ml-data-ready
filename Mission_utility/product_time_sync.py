@@ -15,6 +15,22 @@ import h5py
 import csv
 from tqdm import tqdm
 
+import json
+
+"""
+Encoder to solve TypeError: Object of type 'int64' is not JSON serializable from stackoverflow 
+"""
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NpEncoder, self).default(obj)
+
 """
 FIND SPECIFIED PATTERN USING FNMATCH 
 """
@@ -99,9 +115,9 @@ def dimension_checker_from_h5cube_csv(home_dir, base_list, mission): #assumes al
     for base in base_list:
         base = base.strip(' ')
         
-        name = pattern_finder(home_dir, pattern = f'*{base}*{mission}*[!sync].h5')
+        name = pattern_finder(home_dir, pattern = f'*{base}*{mission}*[metadata]*[!sync].h5')
         print('cube name:', name)
-        cube_dim = name.split('_')[-1].split('.')[0]
+        cube_dim = name.split('_')[-2] #.split('.')[0]
         print('cube_dim:', cube_dim)
         data_dim_list.append(cube_dim)
 
@@ -159,7 +175,7 @@ def time_step_prev_reader(home_dir, pattern):
 
     name = pattern_finder(home_dir, pattern)
     print('name from time_step_prev_reader:', name)
-    time_step_prev = name.split('_')[-4] #was [-2] previously
+    time_step_prev = name.split('_')[-5] #was [-4] previously and [-2] before that
     print('time_step_prev from fcn:', time_step_prev)
     
     return int(time_step_prev)
@@ -171,7 +187,7 @@ def cube_data_reader(home_dir, base, mission, pattern):
 
     name = pattern_finder(home_dir, pattern)            
     print('cube name:', name)
-    cube_dim = name.split('_')[-1].split('.')[0] #str
+    cube_dim = name.split('_')[-2] #.split('.')[0] #str
     print('cube_dim:', cube_dim)
                 
     cube = h5py.File(f'{home_dir}{name}', 'r')
@@ -180,8 +196,12 @@ def cube_data_reader(home_dir, base, mission, pattern):
     #cube_data = cube[f'{base}_{mission}_{cube_dim}/data'][:]    
     #cube_hdr = cube[f'{base}_{mission}_{cube_dim}/header'][:].asstr(encoding = 'utf-8') #_header'][:]
     
-    ### meta_items method ###
-    meta_items = list(cube.attrs.items())
+    ### old meta_items method ###
+    #meta_items = list(cube.attrs.items())
+    #print('len(meta_items):', len(meta_items))
+    
+    ### new meta items method ###
+    meta_items = json.loads(cube[f'{base}_{mission}_{cube_dim}_metadata'][()])
     print('len(meta_items):', len(meta_items))
     
     cube.close()
@@ -280,16 +300,21 @@ def cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, meta_ite
 
      ### Fetching the metadata from the pre-synced data cubes ###
           
-     ### meta-data method ###
-     meta_list_transpose = np.transpose(meta_items)[0] #these are the pseudo dict keys from the HDF5 attributes containing the FITS metadata!
+     ### old meta-data method ###
+     #meta_list_transpose = np.transpose(meta_items)[0] #these are the pseudo dict keys from the HDF5 attributes containing the FITS metadata!
           
-     metadata_keywords = []
+     ### new meta-data method ###
+     meta_data_keywords_pre = list(meta_items.keys())
+     
+     metadata_keywords_list = []
      for ind in synch_time_inds_mod:
-          slice_attr = list(filter(lambda x: f'_{ind}' in x, meta_list_transpose)) #list of attr corresponding to slice
-          meta_ind_start = np.where(np.array(slice_attr[0]) == meta_list_transpose)[0][0]
-          meta_ind_fin = np.where(np.array(slice_attr[len(slice_attr)-1]) == meta_list_transpose)[0][0]
-          metadata_keywords += list(meta_items[meta_ind_start:meta_ind_fin+1])
-     print('len(metadata_keywords):', len(metadata_keywords))
+          metadata_keywords = list(filter(lambda x: f'_{ind}' in x, meta_data_keywords_pre))
+          #slice_attr = list(filter(lambda x: f'_{ind}' in x, meta_data_keywords_pre) #meta_list_transpose)) #list of attr corresponding to slice
+          #meta_ind_start = np.where(np.array(slice_attr[0]) == meta_data_keywords_pre)[0][0]
+          #meta_ind_fin = np.where(np.array(slice_attr[len(slice_attr)-1]) == meta_data_keywords_pre)[0][0]
+          #metadata_keywords_list += list(meta_items[meta_ind_start:meta_ind_fin+1])
+          metadata_keywords_list += metadata_keywords
+     print('len(metadata_keywords_list):', len(metadata_keywords_list))
      
                
      if flag_lasco is None:
@@ -318,17 +343,22 @@ def cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, meta_ite
           #cube_sync.create_dataset(f'{base}_{mission}_{cube_dim}_header', data=cube_hdr)
           
      ### metadata method continued ###
-     slice_val_start = int(metadata_keywords[0][0].split('_')[-1])
+     slice_val_start = int(metadata_keywords_list[0].split('_')[-1])
      print('slice_val_start:', slice_val_start)
      
+     meta_data_dict = {}
      slice_counter = 0
-     for met in metadata_keywords:
-          if int(met[0].split('_')[-1]) > slice_val_start:
-               slice_val_start = int(met[0].split('_')[-1]) #update slice_val_start to the next slice
+     for met in metadata_keywords_list:
+          if int(met.split('_')[-1]) > slice_val_start:
+               slice_val_start = int(met.split('_')[-1]) #update slice_val_start to the next slice
                slice_counter +=1 #update to count next slice in sync cube
-          cube_sync.attrs[f'{met[0]}_syncslice{slice_counter}'] = met[1]
+          meta_data_dict[f'{met}_syncslice{slice_counter}'] = meta_items[met] ### these are the meta_items dictionary values    
+          #cube_sync.attrs[f'{met[0]}_syncslice{slice_counter}'] = met[1]
      print('data cube slice count:', slice_counter)
           
+     cube_sync.create_dataset(f'{base}_{mission}_{cube_dim}_metadata', data=json.dumps(meta_data_dict, cls=NpEncoder))
+     cube_sync.attrs['NOTE'] = 'JSON serialization'
+     
      cube_sync.close()     
      
      return cube_sync
