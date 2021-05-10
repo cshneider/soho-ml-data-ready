@@ -201,12 +201,13 @@ def cube_data_reader(home_dir, base, mission, pattern):
     #print('len(meta_items):', len(meta_items))
     
     ### new meta items method ###
-    meta_items = json.loads(cube[f'{base}_{mission}_{cube_dim}_metadata'][()])
-    print('len(meta_items):', len(meta_items))
+    #meta_items = json.loads(cube[f'{base}_{mission}_{cube_dim}_metadata'][()])
+    meta_items_pre = cube[f'{base}_{mission}_{cube_dim}_metadata'][()]    
+    print('len(meta_items_pre):', len(meta_items_pre))
     
     cube.close()
 
-    return cube_data, cube_dim, meta_items ### meta_items #, str(cube_hdr) ???????
+    return cube_data, cube_dim, meta_items_pre ### meta_items #, str(cube_hdr) ???????
     
 
 """
@@ -296,7 +297,7 @@ OUTPUTS DATA CUBES FOR EACH SPECIFIED PRODUCT. THESE CUBES ARE THE REDUCED VERSI
 #cube_hdr method previously tried where meta_items replaced by cube_hdr
 """
 
-def cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, meta_items, ind_start, ind_end, synch_time_inds_mod, date_start, date_finish, time_step_prev, time_step, mission, flag_lasco=None):
+def cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, meta_items_pre, ind_start, ind_end, synch_time_inds_mod, date_start, date_finish, time_step_prev, time_step, mission, flag_lasco=None):
 
      ### Fetching the metadata from the pre-synced data cubes ###
           
@@ -304,10 +305,11 @@ def cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, meta_ite
      #meta_list_transpose = np.transpose(meta_items)[0] #these are the pseudo dict keys from the HDF5 attributes containing the FITS metadata!
           
      ### new meta-data method ###
+     meta_items = json.loads(meta_items_pre)
      meta_data_keywords_pre = list(meta_items.keys())
      
      metadata_keywords_list = []
-     for ind in synch_time_inds_mod:
+     for i,ind in tqdm(enumerate(synch_time_inds_mod)):
           metadata_keywords = list(filter(lambda x: f'_{ind}' in x, meta_data_keywords_pre))
           #slice_attr = list(filter(lambda x: f'_{ind}' in x, meta_data_keywords_pre) #meta_list_transpose)) #list of attr corresponding to slice
           #meta_ind_start = np.where(np.array(slice_attr[0]) == meta_data_keywords_pre)[0][0]
@@ -348,7 +350,7 @@ def cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, meta_ite
      
      meta_data_dict = {}
      slice_counter = 0
-     for met in metadata_keywords_list:
+     for i,met in tqdm(enumerate(metadata_keywords_list)):
           if int(met.split('_')[-1]) > slice_val_start:
                slice_val_start = int(met.split('_')[-1]) #update slice_val_start to the next slice
                slice_counter +=1 #update to count next slice in sync cube
