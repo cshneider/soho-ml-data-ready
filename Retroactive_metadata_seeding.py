@@ -48,7 +48,7 @@ def main(image_size_output, path_to_mag_cube, mag_cube_name, base, mission):
 
     ### creat cube copy with data from original cube and add the metadata via attributes which can now write ###
     full_mag_cube_name = f'{path_to_mag_cube}{mag_cube_name}'
-    mag_cube_name_new = full_mag_cube_name.split('.')[0] + '_retroactive_metadata.h5'
+    mag_cube_name_new = full_mag_cube_name.split('.')[0] + '_retroactivemetadata.h5'
     print(mag_cube_name_new)
 
     data_cube_new = h5py.File(mag_cube_name_new,'w')
