@@ -30,6 +30,8 @@ from skimage.feature import canny, blob_log
 
 import json
 
+from tqdm import tqdm
+
 """
 Encoder to solve TypeError: Object of type 'int64' is not JSON serializable from stackoverflow 
 """
@@ -395,7 +397,7 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image
     #header_down_key_list=[]
     #header_down_val_list=[]
     
-    for elem in data_files:
+    for i,elem in tqdm(enumerate(data_files)):
         axdim1,axdim2,data_content,header_content,axisnum = readfits(f'{filepath}{elem}')
         hdr_down = downsample_header(header_content, image_size_output, base, mission, fits_headers) # hdr_down_keys, hdr_down_vals
         if f'{mission}' in elem:
@@ -406,10 +408,10 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image
 
     if data_content_list:
         data_content_stack = np.stack(data_content_list)
-        #header_down_stack = np.stack(header_down_list)
+        #header_down_stack = np.stack(header_down_list) 
     else:
         data_content_stack = []
-        #header_down_stack = []
+        #header_down_stack = [] 
                   
     time_start_name_new, time_finish_name_new = data_name_selector(home_dir, base, date_start, date_finish, mission)
         
@@ -422,7 +424,7 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image
     
     meta_data_dict = {}
     #key_counter = 0
-    for i in range(len(header_down_list)):
+    for i, head in tqdm(enumerate(header_down_list)): #range(len(header_down_list)):
         for j,key in enumerate(list(header_down_list[i].keys())): #list(header_content_new.keys())):
             if (key == 'COMMENT') or (key == 'HISTORY'): #since 'COMMENTS' and 'HISTORY' can occur multiple times so modifying with 'key_counter' to make them unique per image slice
                 key = f'{key}{i}' #{key_counter}                  
