@@ -406,10 +406,10 @@ def data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image
 
     if data_content_list:
         data_content_stack = np.stack(data_content_list)
-        header_down_stack = np.stack(header_down_list) #was commented out 
+        #header_down_stack = np.stack(header_down_list)
     else:
         data_content_stack = []
-        header_down_stack = [] #was commented out 
+        #header_down_stack = []
                   
     time_start_name_new, time_finish_name_new = data_name_selector(home_dir, base, date_start, date_finish, mission)
         
