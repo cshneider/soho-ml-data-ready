@@ -243,7 +243,7 @@ It can be accessed in the following way:
 import h5py
 cube = h5py.File('file_name.h5','r')
 data = cube[f'{Mission_Product_name}_{Mission}_{Output_dimension}'][:]
-cube_metadata = list(cube.attrs.items())
+cube_json_serialization = list(cube.attrs.items())
 ```
 
 Using JSON on the metadata:
