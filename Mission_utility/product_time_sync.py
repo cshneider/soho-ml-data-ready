@@ -307,10 +307,12 @@ def cube_sync_maker(home_dir, base, base_list_len, cube_data, cube_dim, meta_ite
      ### new meta-data method ###
      meta_items = json.loads(meta_items_pre)
      meta_data_keywords_pre = list(meta_items.keys())
+     print('len(meta_data_keywords_pre):', len(meta_data_keywords_pre))
      
      metadata_keywords_list = []
      for i,ind in tqdm(enumerate(synch_time_inds_mod)):
-          metadata_keywords = list(filter(lambda x: f'_{ind}' in x, meta_data_keywords_pre))
+          metadata_keywords_pre = list(filter(lambda x: f'_{ind}' in x, meta_data_keywords_pre))
+          metadata_keywords = list(filter(lambda x: len(str(ind)) == len(x.split('_')[-1]),metadata_keywords_pre)) ### need this second filter to have exact match
           #slice_attr = list(filter(lambda x: f'_{ind}' in x, meta_data_keywords_pre) #meta_list_transpose)) #list of attr corresponding to slice
           #meta_ind_start = np.where(np.array(slice_attr[0]) == meta_data_keywords_pre)[0][0]
           #meta_ind_fin = np.where(np.array(slice_attr[len(slice_attr)-1]) == meta_data_keywords_pre)[0][0]
