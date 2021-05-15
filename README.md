@@ -163,7 +163,7 @@ Without any filters, LASCO\_C2 had 18.737 files and took ~7 hrs and LASCO\_C3 ha
 The reported time of ~25 hrs is with the option of not having extended FITS headers included. Including this metadata will contribute to a longer run time. 
 A better solution is to retroactively seed the MDI and HMI data cubes with their respective metadata. That is selecting 'N/n' for `fits_headers' and after the datacube has been made and the 
 csv file with the times generated, then to use the `Retroactive metadata seeding' Jupyter notebook or eponymous script to include the metadata as an HDF5 attribute. The original HDF5 data cube
-is copied and not gzipped so that the metadata can be efficiently added to it. The process takes several days but is faster than including the FITS protocol option.
+is copied and not gzipped so that the metadata can be efficiently added to it.
 
 ***Previously, used wget to obtain MDI_96m from VSO SDAC with 18.426 files and took ~7 hrs for 01.01.1996 - 01.05.2011.
 
@@ -212,8 +212,8 @@ Now, using @{time_window}h in DRMS to shorten the export.
 ## Retroactive_metadata_seeding.py
 
 Takes in original MDI and HMI data cube obtained without using the FITS protocol from JSOC and retroactively obtains metadata from JSOC and seeds the cube with these keywords as an attribute to HDF5.
-Also takes in the corresponding csv times file in order to fetch the corresponding metadata usign DRMS query. This process may take several days (roughly 3 days for an MDI cube composed of 15456 files)
-but this is still faster than using the FITS protocol with JSOC which can take 15 minutes per FITS file seen using the setup here. 
+Also takes in the corresponding csv times file in order to fetch the corresponding metadata usign DRMS query. 
+JSOC can take 15 minutes per FITS file seen using the setup here. 
 
 Retroactive\_metadata\_seeding parameters:
 
@@ -230,12 +230,22 @@ Retroactive\_metadata\_seeding parameters:
 - 1999-02-02-16:00:00_to_2011-01-01-00:00:00\_MDI\_96m\_subsample\_6\_LASCOlev1-N\_SOHO\_128.h5
 - 1999-01-01\_to\_2010-12-31\_MDI\_96m\_times\_subsample\_6\_LASCOlev1-N\_SOHO\_128.csv
 ### Output
-- 1999-02-02-16:00:00\_to\_2011-01-01-00:00:00\_MDI\_96m\_subsample\_6\_LASCOlev1-N\_SOHO\_128\_with_metadata.h5
+- 1999-02-02-16:00:00\_to\_2011-01-01-00:00:00\_MDI\_96m\_subsample\_6\_LASCOlev1-N\_SOHO\_128\_metadata.h5
 
 __Metadata__
 The FITS header metadata has been transferred to the HDF5 files and has been updated to account for the scale factor downsampling for several variables:
 CDELT1, CDELT2, CRPIX1, CRPIX2 are always updated when they are present. 
-RSUN\_OBS, R\_SUN, X0, Y0, and CROP_RAD or SOLAR\_R is updated when present. 
+RSUN\_OBS, R\_SUN, X0, Y0, and CROP_RAD or SOLAR\_R is updated when present along with other pixel dependent quantities contained in downsample\_header and downsample\_header\_local in 
+Mission\_utility/\__init\__.py
+
+All seven data cubes now contain metadata and have the \_metadata.h5 and metadata_sync.h5 suffixes at the end of each name corresponding to the cube generation and syncronization steps, respectively.
+The suffix \_retroactivemetadata.h5 is appended to the end of the MDI or HMI data cube after the Retroactive\_metadata\_seeding.py script is used.
+Running the retroactive script on the SoHo MDI data takes about ~15 minutes with 10 minutes for loading the Pandas dataframe of 83700 entries fetched from JSOC and 5 minutes with creating the metadata dictionary.
+An accompanying Jupyter notebook, Header\_Reader\_for\_Gen\_and\_Sync\_datacubes.ipynb, is also provided for reading metadata from datacubes from Gen and Sync steps.
+
+The cube\_metadata has a dictionary like appearance and can be easily converted to an actual dictionary with key,value pairs.
+The FITS standard keywords appearing in cube\_metadata have an extra `_SliceNumber' appended to indicate what slice they belong to. 
+So CRPIX1\_0 would correspond to CRPIX1 of the first slice and so forth.
 
 It can be accessed in the following way:
 
@@ -246,17 +256,20 @@ data = cube[f'{Mission_Product_name}_{Mission}_{Output_dimension}'][:]
 cube_json_serialization = list(cube.attrs.items())
 ```
 
-Using JSON on the metadata:
+Using JSON to decode the metadata (which has been JSON serialized):
 ```python
 with h5py.File('file_name.h5', 'r') as hfile:
     metadata = json.loads(hfile[f'{base}_{mission}_{image_size_output}_metadata'][()])
-    for k in metadata:
-        print('{} => {}'.format(k, metadata[k]))
 ```
 
-The cube\_metadata has a dictionary like appearance and can be easily converted to an actual dictionary with key,value pairs.
-The FITS standard keywords appearing in cube\_metadata have an extra `_SliceNumber' appended to indicate what slice they belong to. 
-So CRPIX1\_0 would correspond to CRPIX1 of the first slice and so forth.
+For the datacubes corresponding to Tables 2 and 3 of the paper, the run times to sync are:
+
+| SoHO Experiment (sync step)		| Time (hrs)| 
+| -------------		| --------  |
+| MDI  				| ~2     	  |
+| MDI, EIT 195, LASCO C2 | ~5        |
+| All 7 products  		| ~4        |
+
 
 ## Mission_Product_Sync.py
 This is the companion script to \Mission\_Data\_Gen.py to synchronize the times between the specified data products once they have all been downloaded from the VSO and pre-processed.
@@ -305,20 +318,20 @@ If one had run Mission\_Data\_Gen.py with the following inputs: --products='MDI\
 Example output:
 
 In addition to the product folders, .h5 files, and .csv files already present, the following new products would be produced:
-- 1999-01-01_to_2011-05-01\_MDI\_96m\_SOHO\_3products\_6\_12\_128_sync.h5
-- 1999-01-01_to_2011-05-01\_EIT195\_SOHO\_3products\_6\_12\_128\_sync.h5
-- 1999-01-01_to_2011-05-01\_LASCO\_C2\_SOHO\_3products\_6\_12\_128\_sync.h5
+- 1999-01-01_to_2011-05-01\_MDI\_96m\_SOHO\_3products\_6\_12\_128\_metadata\_sync.h5
+- 1999-01-01_to_2011-05-01\_EIT195\_SOHO\_3products\_6\_12\_128\_metadata\_sync.h5
+- 1999-01-01_to_2011-05-01\_LASCO\_C2\_SOHO\_3products\_6\_12\_128\_metadata\_sync.h5
 - 1999-01-01_to_2011-05-01\_MDI\_96m\_SOHO\_3products\_6\_12\_128\_times\_sync.csv
 - 1999-01-01_to_2011-05-01\_EIT195\_SOHO\_3products\_6\_12\_128\_times\_sync.csv
 - 1999-01-01_to_2011-05-01\_LASCO\_C2\_SOHO\_3products\_6\_12\_128\_times\_sync.csv
 with the following set as well which is synced with the LASCO difference images to subtract the Fcorona:
-- 1999-01-01_to_2011-05-01\_MDI\_96m\_SOHO\_3products\_Fcorona\_6\_12\_128\_sync.h5
-- 1999-01-01_to_2011-05-01\_EIT195\_SOHO\_3products\_Fcorona\_6\_12\_128\_sync.h5
-- 1999-01-01_to_2011-05-01\_LASCO\_C2\_SOHO\_3products\_Fcorona\_6\_12\_128\_sync.h5
+- 1999-01-01_to_2011-05-01\_MDI\_96m\_SOHO\_3products\_Fcorona\_6\_12\_128\_metadata\_sync.h5
+- 1999-01-01_to_2011-05-01\_EIT195\_SOHO\_3products\_Fcorona\_6\_12\_128\_metadata\_sync.h5
+- 1999-01-01_to_2011-05-01\_LASCO\_C2\_SOHO\_3products\_Fcorona\_6\_12\_128\_metadata\_sync.h5
 - 1999-01-01_to_2011-05-01\_MDI\_96m\_SOHO\_3products\_Fcorona\_6\_12\_128\_times\_sync.csv
 - 1999-01-01_to_2011-05-01\_EIT195\_SOHO\_3products\_Fcorona\_6\_12\_128\_times\_sync.csv
 - 1999-01-01_to_2011-05-01\_LASCO\_SOHO\_C2\_3products\_Fcorona\_6\_12\_128\_times\_sync.csv
 
 Run time: ~10 min.
 
-These final *sync.h5 data cubes are now ready for input into an ML architecture.
+These final *\_metadata\sync.h5 data cubes are now ready for input into an ML architecture.
