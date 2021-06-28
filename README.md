@@ -4,11 +4,11 @@ Generate and temporally sync SoHO and/or SDO Mission image products to make a st
 
 ## Flowchart 
 
-[[https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg| alt=Flowchart]]
+[[https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg|alt=Flowchart]]
 
 ## Space Weather Application
 
-[[https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Step3.jpeg| alt=CNN]]
+[[https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Step3.jpeg|alt=CNN]]
 
 ## Instructions
 
