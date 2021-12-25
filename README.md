@@ -2,9 +2,11 @@
 
 Generate and temporally sync SoHO and/or SDO Mission image products to make a standardized machine-learning-ready data set.
 
-## ![Software Tool Flowchart](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg?raw=true)
+## Software Tool Flowchart
+![Software Tool Flowchart](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Steps1_2.jpeg?raw=true)
 
-## ![Space Weather Application using Parallel CNNs](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Step3.jpeg?raw=true)
+## Space Weather Application using Parallel CNNs
+![Space Weather Application using Parallel CNNs](https://github.com/cshneider/soho-ml-data-ready/blob/master/SoHO_SDO_Pipeline_Step3.jpeg?raw=true)
 
 
 ## Instructions
