@@ -17,6 +17,7 @@ Generate and temporally sync SoHO and/or SDO Mission image products to make a st
 4. conda -V
 5. conda create -n Give\_A\_Name\_for\_Your\_Virtual\_Environment python=3.6 anaconda
 6. conda install --file Path\_to\_Mission\_Requirements\_File/Mission\_Requirements.txt
+        -Some packages will have trouble installing, will need to do >>conda install -c conda-forge PKG-NAME to install those packages.
 
 ## Mission_Data_Gen.py
 
