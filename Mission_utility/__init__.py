@@ -453,7 +453,7 @@ def product_search(base,time_range,client,mission,time_window):
         wavelen = int(base[3:6])
         print('wavelen:', wavelen)
         #a.vso.Time(time_range,date_time_start) works with VSO but not with JSOC; so putting everything to form: a.vso.Time(time_range.start,time_range.end)
-        product_results = Fido.search(a.vso.Time(time_range.start,time_range.end), a.vso.Source(f'{mission}'), a.vso.Instrument('EIT'), a.vso.Provider('SDAC'), a.vso.Wavelength(wavelen * a.vso.u.Angstrom, wavelen * a.vso.u.Angstrom))
+        product_results = Fido.search(a.Time(time_range.start,time_range.end), a.Source(f'{mission}'), a.Instrument('EIT'), a.Provider('SDAC'), a.Wavelength(wavelen * u.Angstrom, wavelen * u.Angstrom))
         #print('product_results:', product_results)
     
     elif ('MDI' in base) or (mission == 'SDO'): #elif any([x in base for x in drms_product_matches]):
@@ -493,7 +493,7 @@ def product_search(base,time_range,client,mission,time_window):
     elif 'LASCO' in base: #LASCO is a SOHO instrument so hardcoded in a.vso.Source('SOHO') so as not to get 'SDO' in here!
         detector = base.split('_')[1]
         #a.vso.Time(time_range,date_time_start) works with VSO but not with JSOC; so putting everything to form: a.vso.Time(time_range.start,time_range.end)
-        product_results = Fido.search(a.vso.Time(time_range.start,time_range.end), a.vso.Provider('SDAC'), a.vso.Source('SOHO'), a.vso.Instrument('LASCO'), a.vso.Detector(detector))
+        product_results = Fido.search(a.Time(time_range.start,time_range.end), a.Provider('SDAC'), a.Source('SOHO'), a.Instrument('LASCO'), a.Detector(detector))
     
     return product_results, client
 
@@ -502,7 +502,7 @@ Check JSOC DRMS for ghost files of 0 MB in query. These ghost files are returned
 THIS IS FROM THE OLD METHOD WHERE HAD QUERY OBJECT AND EXPORT OBJECT SEPERATE. SINCE QUERY OBJECT CONTAINS ENTRIES OF GHOST FILES AND THE EXPORT OBJECT DOES NOT, THE EXPORT OBJECT SHOULD BE USED TO 
 EXTRACT ALL INFORMATION INCLUDING THE TIMES. 
 """
-
+"""
 def ghost_file_check(product_results): #(client,time_range):
     
     #ts = '_'.join(str(time_range.start).split(' '))+'_TAI'
@@ -510,6 +510,7 @@ def ghost_file_check(product_results): #(client,time_range):
     #client_export_MDI = client.export(f'mdi.fd_M_96m_lev182[{ts}-{tf}]')
     
     return product_results.has_failed() #client_export_MDI.has_failed()
+"""
 
 """
 Returns the indices corresponding to the proper sizes of each of the data products to ensure that they are single, two dimensional images.
@@ -519,9 +520,10 @@ def index_of_sizes(base,product_results,fits_headers,lev1_LASCO,mission):
     matches_EIT = ['171', '304', '284']
     
     if 'EIT195' in base:
-        size_list = [elem['size'] for elem in product_results.get_response(0)[:]]
-        ind_2059 = np.where(np.array(size_list) == 2059)[0] #this is for 1024 x 1024 pixels
-        ind_523 = np.where(np.array(size_list) == 523)[0] ##this is for 512 x 512 pixels
+        size_list = [elem['Size'] for elem in product_results[0,:]]#.get_response(0)[:]]
+        size_list_np = [size_list[i].value for i in range(len(size_list))]
+        ind_2059 = np.where(np.array(size_list_np) == 2059)[0] #this is for 1024 x 1024 pixels
+        ind_523 = np.where(np.array(size_list_np) == 523)[0] ##this is for 512 x 512 pixels
         ind = np.sort(list(ind_2059) + list(ind_523)) #important to sort here since combining two lists!
         
     elif ('MDI' in base) or (mission == 'SDO'):
@@ -540,17 +542,17 @@ def index_of_sizes(base,product_results,fits_headers,lev1_LASCO,mission):
     elif 'LASCO' in base:
         
         if (lev1_LASCO == 'Y') or (lev1_LASCO == 'y'):
-            size_list = [elem['size'] for elem in product_results.get_response(0)[:]]
-            ind = np.where(np.array(size_list) == 4106.0)[0] #4106 is for calibrated level-1.0 #2100.0 was for uncalibrated level-0.5 
+            size_list = [elem['Size'].value for elem in product_results[0,:]]#.get_response(0)[:]]
+            ind = np.where(np.array(size_list.value) == 4106.0)[0] #4106 is for calibrated level-1.0 #2100.0 was for uncalibrated level-0.5 
         
         elif (lev1_LASCO == 'N') or (lev1_LASCO == 'n'):
-            size_list = [int(np.ceil(elem['size'] / 100.0))*100 for elem in product_results.get_response(0)[:]] 
+            size_list = [int(np.ceil(elem['Size'].value / 100.0))*100 for elem in product_results[0,:]]#.get_response(0)[:]] 
             ind = np.where(np.array(size_list) == 2100.0)[0] #4106 is for calibrated level-1.0 #2100.0 was for uncalibrated level-0.5         
         
         #[int(np.ceil(elem['size'] / 100.0))*100 for elem in product_results.get_response(0)[:]] #this was for uncalibrated level-0.5
         
     elif (any([x in base for x in matches_EIT])) and (mission == 'SOHO'): #'SOHO' here because have overlap in wavelength between missions at 171 Angstrom.
-        size_list = [elem['size'] for elem in product_results.get_response(0)[:]]
+        size_list = [elem['Size'].value for elem in product_results[0,:]]#.get_response(0)[:]]
         #print(np.unique(size_list), len(size_list))
         ind = np.where(np.array(size_list) == 2059)[0]        
         #print(len(ind))
