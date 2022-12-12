@@ -6,24 +6,25 @@ from datetime import datetime, date, time, timedelta
 from sunpy.time import TimeRange
 from time import process_time
 from tqdm import tqdm
-import Mission_utility as ipy
-
 import drms
 
-date_start = '1999-04-04'
-date_finish = '1999-04-09'
+import Mission_utility.__init__ as ipy
+import Mission_utility.sdo_mdi as sdo
+import Mission_utility.soho_other as soho
+
+date_start =  '2002-04-01'#'2002-04-01' #'1999-04-04' # '2010-10-01'
+date_finish = '2002-04-07'#'2002-04-07' #'1999-04-09' # '2010-10-05'
 image_size_output = 128
 time_window = 6
 flag = 'subsample'
 home_dir = '/Users/gohawks/Desktop/soho-ml-data/soho-ml-data-ready-martinkus/'
-bases = 'LASCO_C3' #'EIT195' #,LASCO_C3'#MDI_96m
+bases = 'MDI_96m3' #,LASCO_C3'#MDI_96m #AIA #HMI #'EIT195'
 fits_headers = 'N'
-lev1_LASCO = 'N'
+lev1_LASCO = 'Y' #CANNOT USE 'N' UNTIL UNIT CONVERSION SORTED OUT
 email = 'charlotte.martinkus@noaa.gov'
-mission = 'SOHO'
 
 
-#def main(date_start, date_finish, image_size_output, time_window, flag, home_dir, bases, fits_headers, lev1_LASCO, email, mission):
+#def main(date_start, date_finish, image_size_output, time_window, flag, home_dir, bases, fits_headers, lev1_LASCO, email):
     
 client = drms.Client(email=email, verbose=False) #True
 
@@ -62,6 +63,13 @@ for base in tqdm(base_list):
         start_process_time = process_time() #initialize clock per product type
             
         base = base.strip(' ')
+        if ('LASCO' in base) or ('EIT' in base):
+            BaseClass = soho.SOHO_no_MDI(base, lev1_LASCO, fits_headers)
+            
+        else:
+            BaseClass = sdo.SDO_MDI(base, lev1_LASCO, fits_headers, time_window)
+            
+        BaseClass.set_base_dictionary()
         
         holes_list = []
         transients_list = []
@@ -69,23 +77,23 @@ for base in tqdm(base_list):
         unreadable_file_ids_product_list_global = []
     
         print(f'{base}')
-        base_dir = home_dir + base + f'_{mission}'
+        base_dir = home_dir + base + '_' + BaseClass.mission
         if not os.path.exists(base_dir):
             os.makedirs(base_dir)   
             
         time_range = TimeRange(date_time_start, timedelta(days = time_increment))
         
-        prev_time, time_range_modified = ipy.prev_time_resumer(home_dir, base, time_range, date_time_end, mission) #time_range_modified.next() is the workshorse that advances time at the end of the time for-loop
+        prev_time, time_range_modified = ipy.prev_time_resumer(home_dir, time_range, date_time_end, BaseClass) #time_range_modified.next() is the workshorse that advances time at the end of the time for-loop
         for t_value in tqdm(np.arange(num_loops)): #this is the main workhorse loop of the program
             print('t_value:', t_value)
             print('prev_time:', prev_time)
                 
             if time_range_modified.end > date_time_end:
-                time_range_modified = TimeRange(time_range_modified.start, date_time_end)  
-                       
-            product_results, client = ipy.product_search(base, time_range_modified, client, mission, time_window) 
+                time_range_modified = TimeRange(time_range_modified.start, date_time_end) 
+                
+            product_results, client = BaseClass.product_search(time_range_modified, client)
             
-            if ('MDI' in base) or (mission == 'SDO'):
+            if BaseClass.class_type == 'SDO_MDI':
                 client_export_failed = product_results.has_failed()
                 
                 if client_export_failed == True:
@@ -99,11 +107,11 @@ for base in tqdm(base_list):
                 client_export_failed = False
                 
             if (product_results_number != 0) and (client_export_failed == False): #product_results.has_failed()
-                ind, fits_headers = ipy.index_of_sizes(base,product_results, fits_headers, lev1_LASCO, mission) #putting fits_headers here to insert it into __init__.py
-                all_size_sieved_times_pre, fetch_indices_product_orig = ipy.fetch_indices(base,ind,product_results,time_window,look_ahead, prev_time, mission)
+                ind = BaseClass.index_of_sizes(product_results) #putting fits_headers here to insert it into __init__.py
+                all_size_sieved_times_pre, fetch_indices_product_orig = ipy.fetch_indices(ind,product_results,time_window, prev_time, BaseClass)
                 if len(fetch_indices_product_orig) != 0:
                 
-                    all_time_window_sieved_times_product_times_modified, holes_product_list, transients_product_list, blobs_product_list, unreadable_file_ids_product_list_local = ipy.product_distiller(fetch_indices_product_orig, base, all_size_sieved_times_pre, ind, product_results, look_ahead, time_window, url_prefix, flag, image_size_output, home_dir, email, fits_headers, lev1_LASCO, client, mission)
+                    all_time_window_sieved_times_product_times_modified, holes_product_list, transients_product_list, blobs_product_list, unreadable_file_ids_product_list_local = ipy.product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind, product_results, look_ahead, time_window, url_prefix, flag, image_size_output, home_dir, email, client, BaseClass)
                     
                     if holes_product_list: #if image had missing regions (e.g., arising from telemetry errors)
                         holes_list.append(holes_product_list)
@@ -126,7 +134,7 @@ for base in tqdm(base_list):
                     if len(all_time_window_sieved_times_sorted) != 0:
                         prev_time.append(all_time_window_sieved_times_sorted[-1]) #append the last good time entry from the previous loop
                             
-                    ipy.csv_writer(base,home_dir, date_start, date_finish, flag, time_window, image_size_output, all_time_window_sieved_times_sorted, lev1_LASCO, mission)
+                    ipy.csv_writer(home_dir, date_start, date_finish, flag, time_window, image_size_output, all_time_window_sieved_times_sorted, BaseClass)
                 
 
             time_range_modified.next() #Sunpy iterator to go for the next time increment in number of days. There is also time_range_modified.previous() to go backwards in time.    
@@ -137,7 +145,7 @@ for base in tqdm(base_list):
         print(f'{base} blobs_list', blobs_list)        
         print(f'{base} unreadable_file_ids_product_list_global:', unreadable_file_ids_product_list_global)
 
-        ipy.data_cuber(home_dir, base, date_start, date_finish, flag, time_window, image_size_output, lev1_LASCO, mission, fits_headers)
+        ipy.data_cuber(home_dir, date_start, date_finish, flag, time_window, image_size_output,BaseClass)
         
         end_process_time = process_time()
         time_of_process = end_process_time - start_process_time
