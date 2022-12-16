@@ -30,6 +30,8 @@ import json
 
 from tqdm import tqdm
 
+import pandas as pd
+
 import Mission_utility.sdo_mdi as sdo
 import Mission_utility.soho_other as soho
 
@@ -375,21 +377,21 @@ The indices returned by this function will be used in the product object returne
 """
 def fetch_indices(ind,product_results,time_window,prev_time, BaseClass):
     
-    all_size_sieved_times_pre = [] #local list to populate at each loop
+    all_size_sieved_times_pre_list = [] #local list to populate at each loop
     all_time_window_sieved_times_product_times = []  #local list to populate at each loop
     
     if BaseClass.class_type == 'SDO_MDI':
         
         drms_export_list = product_results.data.record  
-        all_size_sieved_times_pre = [drms.to_datetime(elem.split('[')[1].split(']')[0]).strftime('%Y%m%d%H%M%S') for i,elem in enumerate(drms_export_list)] #only way to get to times from export object
+        all_size_sieved_times_pre_list = [drms.to_datetime(elem.split('[')[1].split(']')[0]).strftime('%Y%m%d%H%M%S') for i,elem in enumerate(drms_export_list)] #only way to get to times from export object
         
                     
     else:
         
         for value in ind:
-            all_size_sieved_times_pre.append(product_results[0,:][int(value)]['time']['start'])
+            all_size_sieved_times_pre_list.append(product_results[0,:][int(value)]['time']['start'])
             
-    all_size_sieved_times = list(np.unique(all_size_sieved_times_pre))
+    all_size_sieved_times = list(np.unique(all_size_sieved_times_pre_list))
     all_size_sieved_times_aug = prev_time + all_size_sieved_times #prev_time = [] for the very first loop and [last best time from previous loop] for subsequent loops.
 
     if all_size_sieved_times_aug:
@@ -403,14 +405,22 @@ def fetch_indices(ind,product_results,time_window,prev_time, BaseClass):
                 local_time_range = TimeRange(time_value,timedelta(hours=time_window)).next() #important distinction between this local_time_range and the intializing one is the presence of time_value 
             else:
                 continue        
-    new_inds = [np.where(np.array(all_size_sieved_times_pre) == entry)[0][0] for entry in all_time_window_sieved_times_product_times]
+    new_inds = [np.where(np.array(all_size_sieved_times_pre_list) == entry)[0][0] for entry in all_time_window_sieved_times_product_times]
     
     fetch_indices_product = ind[new_inds]
     
-    return all_size_sieved_times_pre, fetch_indices_product
+    size_sieved_df = pd.DataFrame({'orig_ind': ind, 
+                                'time_at_ind': all_size_sieved_times_pre_list,
+                                'is_good': [0]*len(all_size_sieved_times_pre_list),
+                                'is_hole': [0]*len(all_size_sieved_times_pre_list),
+                                'is_transient': [0]*len(all_size_sieved_times_pre_list),
+                                'is_unreadable': [0]*len(all_size_sieved_times_pre_list)
+                                })
+    
+    return size_sieved_df, fetch_indices_product
 
-
-def distiller_with_holes(i, query_result_next,fetch_indices_product_orig, all_size_sieved_times_pre, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass):    
+"""
+def modify_fetch_indices(i, query_result_next,fetch_indices_product_orig, size_sieved_df, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass):    
     writefits(f'{BaseClass.base_full}_{BaseClass.mission}/{BaseClass.mission}_{BaseClass.base_full}_{time_data}_{image_size_output}', reduced_product_data, header_next_good, home_dir)
     all_time_window_sieved_times_product_times.append(time_data) #(time_val) #unsorted time location
     all_time_window_sieved_times_product_times_inds_list.append(index)
@@ -418,44 +428,139 @@ def distiller_with_holes(i, query_result_next,fetch_indices_product_orig, all_si
 
     indiv_ind_modified_list = []
     localized_time_range = TimeRange(str(time_data),timedelta(hours=time_window)).next()
-    for tval in all_size_sieved_times_pre:
+    for tval in size_sieved_df:
         if parser.parse(tval) < localized_time_range.start:
             continue 
         elif tval in localized_time_range:
-            ind_time_new = np.where(np.array(all_size_sieved_times_pre) == tval)[0][0]
+            ind_time_new = np.where(np.array(size_sieved_df) == tval)[0][0]
             indiv_ind_modified_new = ind[ind_time_new]
             indiv_ind_modified_list.append(indiv_ind_modified_new)
             localized_time_range = TimeRange(str(tval),timedelta(hours=time_window)).next()                                
         else:
-            ind_time_new = np.where(np.array(all_size_sieved_times_pre) == tval)[0][0]
+            ind_time_new = np.where(np.array(size_sieved_df) == tval)[0][0]
             indiv_ind_modified_new = ind[ind_time_new]                                    
             next_orig_index = np.where(np.array(fetch_indices_product_orig) == np.array(indiv_ind_modified_new))[0]
             if len(next_orig_index) != 0:
                 indiv_ind_modified_new = fetch_indices_product_orig[next_orig_index[0]]
                 ind_next_index = np.where(np.array(ind) == indiv_ind_modified_new)[0][0]
-                tval = all_size_sieved_times_pre[ind_next_index]
-                indiv_ind_modified_list.append(indiv_ind_modified_new)
-                localized_time_range = TimeRange(str(tval),timedelta(hours=time_window)).next()
-            else:
-                ind_time_new = np.where(np.array(all_size_sieved_times_pre) == tval)[0][0]
-                indiv_ind_modified_new = ind[ind_time_new]
-                indiv_ind_modified_list.append(indiv_ind_modified_new)
-                localized_time_range = TimeRange(str(tval),timedelta(hours=time_window)).next()
+                tval = size_sieved_df[ind_next_index]   
+            indiv_ind_modified_list.append(indiv_ind_modified_new)
+            localized_time_range = TimeRange(str(tval),timedelta(hours=time_window)).next()
 
     if indiv_ind_modified_list:
         fetch_indices_product = list(np.zeros(i+1)) + list(indiv_ind_modified_list)                            
     else:
         fetch_indices_product = list(np.zeros(i+1)) 
     return fetch_indices_product                          
+"""
+def modify_fetch_indices(fetch_indices_product_orig, size_sieved_df, time_window, time_data):
+    indiv_ind_modified_list = []
+    localized_time_range = TimeRange(str(time_data),timedelta(hours=time_window)).next()
+    for tval in list(size_sieved_df['time_at_ind']):
+        if parser.parse(tval) < localized_time_range.start:
+            continue 
+        else:
+            indiv_ind_modified_new = size_sieved_df[size_sieved_df['time_at_ind']==tval]['orig_ind'].values[0]
+            indiv_ind_modified_list.append(indiv_ind_modified_new)
+            if tval not in localized_time_range:                              
+                next_orig_index = np.where(np.array(fetch_indices_product_orig) == np.array(indiv_ind_modified_new))[0]
+                if len(next_orig_index) != 0:
+                    indiv_ind_modified_new = fetch_indices_product_orig[next_orig_index[0]]
+                    tval = size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind_modified_new]['time_at_ind'].values[0]
+            localized_time_range = TimeRange(str(tval),timedelta(hours=time_window)).next()
+    return list(indiv_ind_modified_list) 
+
+
+def get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind, possible_times_mod):
+    localized_time_range = TimeRange(str(time_data),timedelta(hours=time_window)).next()
+    fetch_inds_to_try_list = []
+    if parser.parse(possible_times[-1]) <= localized_time_range.start:
+        indiv_ind = -1
+    else:
+        for tval in possible_times_mod: #find next time to test with user specified time window
+            if parser.parse(tval) < localized_time_range.start:
+                #possible_times.remove(tval)
+                continue 
+            else:
+                time_data = tval
+                indiv_ind = size_sieved_df.loc[size_sieved_df['time_at_ind']==tval]['orig_ind'].values[0]
+                break
+    
+    return time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod
+
+def get_next_good_time_if_bad(fetch_inds_to_try_list, size_sieved_df, time_data, time_window, look_ahead, possible_times, indiv_ind, possible_times_mod):
+    if len(fetch_inds_to_try_list) > 1: #if trying to find product within zoomed time window
+            fetch_inds_to_try_list.pop(0)
+            time_data = fetch_inds_to_try_list[0]
+            indiv_ind = size_sieved_df.loc[size_sieved_df['time_at_ind']==time_data]['orig_ind'].values[0]
+        
+    elif len(fetch_inds_to_try_list) == 1: #if already exhausted all options within zoomed time window, go to next time window
+        time_data, indiv_ind = get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind)
+    
+    else: #see if any other products are within zoomed time window and can be used instead
+        zoomed_time_range = TimeRange(str(time_data),timedelta(hours=time_window))
+        #the zeroth entry didn't have it so that's why plus 1 in the brackets
+        for time_val in possible_times[indiv_ind+1: indiv_ind + look_ahead]:
+            if time_val in zoomed_time_range: #this is the next fitting time in the list, slightly less than 2hrs seperated theoretically
+                fetch_inds_to_try_list.append(time_val)
+        if len(fetch_inds_to_try_list) == 0:
+            time_data, indiv_ind = get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind, possible_times_mod)
+        else:
+            time_data = fetch_inds_to_try_list[0]
+            indiv_ind = size_sieved_df.loc[size_sieved_df['time_at_ind']==time_data]['orig_ind'].values[0]
+
+    return time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod             
+
+def product_distiller(fetch_indices_product_orig, size_sieved_df, date_time_end, product_results, look_ahead, time_window, url_prefix, flag, image_size_output, home_dir, email, client, BaseClass):
+    indiv_ind = fetch_indices_product_orig[0]
+    time_data = size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind]['time_at_ind'].values[0]
+    fetch_inds_to_try_list = [] 
+    possible_times = list(size_sieved_df['time_at_ind'])
+    
+    while indiv_ind != -1:
+        possible_times_mod = possible_times[possible_times.index(time_data)+1:]
+        query_result = BaseClass.product_retriever(product_results,indiv_ind,url_prefix,home_dir,email,size_sieved_df,client)
+        axis1_product, axis2_product, data_product, header_product, axisnum_product = readfits(query_result[0])
+    
+        if (data_product is not None) and (axis1_product == axis2_product) and (axisnum_product == 2):
+            if not holes(query_result[0],BaseClass): #so if not True; so no holes; can use image
+                reduced_product_data = data_reducer(data_product,flag,image_size_output,axis1_product)
+                if 'LASCO' not in BaseClass.base_full:
+                    writefits(f'{BaseClass.base_full}_{BaseClass.mission}/{BaseClass.mission}_{BaseClass.base_full}_{time_data}_{image_size_output}', reduced_product_data, header_product, home_dir)
+                    os.remove(query_result[0]) #delete original downloaded file
+                    size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['is_good']] = 1
+                    time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod = get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind, possible_times_mod)
+                    
+                else:
+                    if (not BaseClass.planet_comet_transient_filter(data_product)): #if both line list and blob lost is empty then can use LASCO image.
+                        writefits(f'{BaseClass.base_full}_{BaseClass.mission}/{BaseClass.mission}_{BaseClass.base_full}_{time_data}_{image_size_output}', reduced_product_data, header_product, home_dir)
+                        os.remove(query_result[0]) #delete original downloaded file
+                        size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['is_good']] = 1
+                        time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod = get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind, possible_times_mod)
+                    else:
+                        size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['is_transient']] = 1
+                        os.remove(query_result[0]) #delete original downloaded file
+                        time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod = get_next_good_time_if_bad(fetch_inds_to_try_list, size_sieved_df, time_data, time_window, look_ahead, possible_times, indiv_ind, possible_times_mod)
+                
+            elif holes(query_result[0],BaseClass): #so if True, if there are holes
+                size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['is_hole']] = 1
+                os.remove(query_result[0]) #delete original downloaded file
+                time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod = get_next_good_time_if_bad(fetch_inds_to_try_list, size_sieved_df, time_data, time_window, look_ahead, possible_times, indiv_ind, possible_times_mod)
+    
+        elif (data_product is None) or (axis1_product != axis2_product) or (axisnum_product != 2):   
+            size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['is_unreadable']] = 1 
+            os.remove(query_result[0]) #delete original downloaded file
+            time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod = get_next_good_time_if_bad(fetch_inds_to_try_list, size_sieved_df, time_data, time_window, look_ahead, possible_times, indiv_ind, possible_times_mod)
+        
+    return size_sieved_df       
 
 
 """
 Checks the downloaded fits files for holes and discards them if holes are found. Repeats procedure at each time as long as an image contained missing pixels. 
-"""
-def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind, product_results, look_ahead, time_window, url_prefix, flag, image_size_output, home_dir, email, client, BaseClass):
+
+def product_distiller(fetch_indices_product_orig, size_sieved_df, product_results, look_ahead, time_window, url_prefix, flag, image_size_output, home_dir, email, client, BaseClass):
 
     holes_product_list = []
-    blobs_product_list = []
     transients_product_list = []
     
     unreadable_file_ids_product_list = []
@@ -469,7 +574,7 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
         if (i > len(fetch_indices_product)-1): #fetch_indices_product is modified in the program to account for times corresponding to holes in images. When all fitting times exhausted then break out of loop.
             break        
         indiv_ind = fetch_indices_product[i] # equivalently int(elem)
-        query_result = BaseClass.product_retriever(product_results,indiv_ind,url_prefix,home_dir,email,all_size_sieved_times_pre,client)
+        query_result = BaseClass.product_retriever(product_results,indiv_ind,url_prefix,home_dir,email,size_sieved_df,client)
         axis1_product, axis2_product, data_product, header_product, axisnum_product = readfits(query_result[0])
             
         if (data_product is not None) and (axis1_product == axis2_product) and (axisnum_product == 2):
@@ -478,9 +583,10 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
                 reduced_product_data = data_reducer(data_product,flag,image_size_output,axis1_product)
                 
                 if BaseClass.class_type == 'SDO_MDI':
-                    time_data = all_size_sieved_times_pre[indiv_ind]
+                    time_data = size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind]['time_at_ind'].values[0]
                     writefits(f'{BaseClass.base_full}_{BaseClass.mission}/{BaseClass.mission}_{BaseClass.base_full}_{time_data}_{image_size_output}', reduced_product_data, header_product, home_dir)
                     os.remove(query_result[0]) #delete original downloaded file
+                    size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['is_good']] = 1
                     all_time_window_sieved_times_product_times.append(time_data)
                     all_time_window_sieved_times_product_times_inds_list.append(indiv_ind)
 
@@ -506,18 +612,18 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
                         transient_loc = url_prefix + product_results[0,:][int(indiv_ind)]['fileid'] 
                         transients_product_list.append((transient_loc, str(time_data)))  
                         zoomed_time_range = TimeRange(time_data,timedelta(hours=time_window))                                                  
-                        ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == str(time_data))[0][0]                        
+                        ind_timespickup = np.where(np.array(size_sieved_df) == str(time_data))[0][0]                        
                         os.remove(query_result[0]) #delete original downloaded file
                         
                         fetch_inds_to_try_list = [] 
-                        for time_val in all_size_sieved_times_pre[ind_timespickup+1: ind_timespickup + look_ahead]:
+                        for time_val in size_sieved_df[ind_timespickup+1: ind_timespickup + look_ahead]:
                             if time_val in zoomed_time_range: #this is the next fitting time in the list, slightly less than 2hrs seperated theoretically
-                                ind_next_good_time = np.where(np.array(all_size_sieved_times_pre) == time_val)[0][0]
+                                ind_next_good_time = np.where(np.array(size_sieved_df) == time_val)[0][0]
                                 fetch_indices_next_good = ind[ind_next_good_time]
                                 fetch_inds_to_try_list.append(fetch_indices_next_good)
 
                         for index in fetch_inds_to_try_list:
-                            query_result_next = BaseClass.product_retriever(product_results,index,url_prefix,home_dir,email,all_size_sieved_times_pre,client)
+                            query_result_next = BaseClass.product_retriever(product_results,index,url_prefix,home_dir,email,size_sieved_df,client)
                             axis1_next_good,axis2_next_good,data_next_good,header_next_good,axisnum_next_good = readfits(query_result_next[0])
 
                             if (data_next_good is not None) and (axis1_next_good == axis2_next_good) and (axisnum_next_good == 2):
@@ -526,7 +632,7 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
                                 if (not holes(query_result_next[0],BaseClass)) and (not BaseClass.planet_comet_transient_filter(data_next_good)):
                                     
                                     time_data = product_results[0,:][int(index)]['time']['start']
-                                    fetch_indices_product, ind_time_new, indiv_ind_modified_new, indiv_ind_modified_list, localized_time_range = distiller_with_holes(i, query_result_next,fetch_indices_product_orig, all_size_sieved_times_pre, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)
+                                    fetch_indices_product, ind_time_new, indiv_ind_modified_new, indiv_ind_modified_list, localized_time_range = modify_fetch_indices(i, query_result_next,fetch_indices_product_orig, size_sieved_df, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)
                                                               
                                     break
 
@@ -554,7 +660,7 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
                 
             elif holes(query_result[0],BaseClass): #so if True, if there are holes
                 if BaseClass.class_type == 'SDO_MDI':
-                    time_data = all_size_sieved_times_pre[indiv_ind]                                                        
+                    time_data = size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind]['time_at_ind'].values[0]                                                       
                     hole_loc = product_results.data.record[indiv_ind].split('{')[0]                                      
                 
                 else:
@@ -564,19 +670,21 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
                 holes_product_list.append((hole_loc, str(time_data)))
                 hole_time_val = str(time_data)
                 os.remove(query_result[0]) #delete original downloaded file
-                ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == hole_time_val)[0][0]
+                ind_timespickup = size_sieved_df[size_sieved_df['time_at_ind']==hole_time_val]['orig_ind'].values[0]
                 zoomed_time_range = TimeRange(str(hole_time_val),timedelta(hours=time_window))
                 
                 fetch_inds_to_try_list = [] 
                 #the zeroth entry didn't have it so that's why plus 1 in the brackets
-                for time_val in all_size_sieved_times_pre[ind_timespickup+1: ind_timespickup + look_ahead]:
+                relevant_times = list(size_sieved_df['time_at_ind'])
+                for time_val in relevant_times[ind_timespickup+1: ind_timespickup + look_ahead]:
                     if time_val in zoomed_time_range: #this is the next fitting time in the list, slightly less than 2hrs seperated theoretically
-                        ind_next_good_time = np.where(np.array(all_size_sieved_times_pre) == time_val)[0][0]
-                        fetch_indices_next_good = ind[ind_next_good_time]
-                        fetch_inds_to_try_list.append(fetch_indices_next_good)
+                        ind_next_good_time = size_sieved_df[size_sieved_df['time_at_ind']==time_val]['orig_ind'].values[0]  
+                        #ind_next_good_time = np.where(np.array(size_sieved_df) == time_val)[0][0]
+                        #fetch_indices_next_good = ind[ind_next_good_time]
+                        fetch_inds_to_try_list.append(ind_next_good_time)
 
                 for index in fetch_inds_to_try_list:
-                    query_result_next = BaseClass.product_retriever(product_results,index,url_prefix,home_dir,email,all_size_sieved_times_pre,client)
+                    query_result_next = BaseClass.product_retriever(product_results,index,url_prefix,home_dir,email,size_sieved_df,client)
                     axis1_next_good,axis2_next_good,data_next_good,header_next_good,axisnum_next_good = readfits(query_result_next[0])
 
                     if (data_next_good is not None) and (axis1_next_good == axis2_next_good) and (axisnum_next_good == 2):
@@ -586,20 +694,20 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
                         if not holes(query_result_next[0],BaseClass): #and (not planet_comet_transient_filter(base, data_product)) and (not cosmic_ray_filter(base, reduced_product_data)):
                             
                             if BaseClass.class_type == 'SDO_MDI':
-                                time_data = all_size_sieved_times_pre[index]     
-                                fetch_indices_product = distiller_with_holes(i, query_result_next,fetch_indices_product_orig, all_size_sieved_times_pre, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)
+                                time_data = size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind]['time_at_ind'].values[0]    
+                                fetch_indices_product = modify_fetch_indices(i, query_result_next,fetch_indices_product_orig, size_sieved_df, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)
                                                            
                                 break                            
                             
                             elif 'EIT' in BaseClass.base_full:
                                 time_data = product_results[0,:][int(index)]['time']['start']
-                                fetch_indices_product = distiller_with_holes(i, query_result_next,fetch_indices_product_orig, all_size_sieved_times_pre, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)                            
+                                fetch_indices_product = modify_fetch_indices(i, query_result_next,fetch_indices_product_orig, size_sieved_df, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)                            
                                 break                             
                             
                             elif 'LASCO' in BaseClass.base_full:    
                                 time_data = product_results[0,:][int(index)]['time']['start']                            
                                 if (not BaseClass.planet_comet_transient_filter(data_next_good)):
-                                    fetch_indices_product = distiller_with_holes(i, query_result_next,fetch_indices_product_orig, all_size_sieved_times_pre, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)                           
+                                    fetch_indices_product = modify_fetch_indices(i, query_result_next,fetch_indices_product_orig, size_sieved_df, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)                           
                                     break                                                         
                                 
                                 
@@ -614,7 +722,7 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
                         elif holes(query_result_next[0],BaseClass): #so if True, if there are holes
                             
                             if BaseClass.class_type == 'SDO_MDI':
-                                time_data = all_size_sieved_times_pre[index]
+                                time_data = size_sieved_df[index]
                                 hole_loc = product_results.data.record[index].split('{')[0]                          
                             
                             else:
@@ -643,7 +751,7 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
             
             if BaseClass.class_type == 'SDO_MDI':
                 unreadable_file_ids_product_list.append(product_results.data.record[indiv_ind].split('{')[0])
-                bad_time_val = all_size_sieved_times_pre[indiv_ind]       
+                bad_time_val = size_sieved_df[indiv_ind]       
             
             else:
                 unreadable_loc = url_prefix + product_results[0,:][int(indiv_ind)]['fileid']
@@ -651,18 +759,18 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
                 bad_time_val = product_results[0,:][int(indiv_ind)]['time']['start']
             
             os.remove(query_result[0]) #delete original downloaded file
-            ind_timespickup = np.where(np.array(all_size_sieved_times_pre) == bad_time_val)[0][0]
+            ind_timespickup = np.where(np.array(size_sieved_df) == bad_time_val)[0][0]
             zoomed_time_range = TimeRange(str(bad_time_val),timedelta(hours=time_window))
 
             fetch_inds_to_try_list = [] #gets reset for each new item
-            for time_val in all_size_sieved_times_pre[ind_timespickup+1: ind_timespickup + look_ahead]:
+            for time_val in size_sieved_df[ind_timespickup+1: ind_timespickup + look_ahead]:
                 if time_val in zoomed_time_range: #this is the next fitting time in the list, slightly less than 2hrs seperated theoretically
-                    ind_next_good_time = np.where(np.array(all_size_sieved_times_pre) == time_val)[0][0]
+                    ind_next_good_time = np.where(np.array(size_sieved_df) == time_val)[0][0]
                     fetch_indices_next_good = ind[ind_next_good_time]
                     fetch_inds_to_try_list.append(fetch_indices_next_good)
 
             for index in fetch_inds_to_try_list:
-                query_result_next = BaseClass.product_retriever(product_results,index,url_prefix,home_dir,email,all_size_sieved_times_pre,client)
+                query_result_next = BaseClass.product_retriever(product_results,index,url_prefix,home_dir,email,size_sieved_df,client)
                 axis1_next_good,axis2_next_good,data_next_good,header_next_good,axisnum_next_good = readfits(query_result_next[0])
 
                 if (data_next_good is not None) and (axis1_next_good == axis2_next_good) and (axisnum_next_good == 2):
@@ -671,20 +779,20 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
                         reduced_product_data = data_reducer(data_next_good,flag,image_size_output,axis1_next_good)
                         
                         if BaseClass.class_type == 'SDO_MDI':
-                            time_data = all_size_sieved_times_pre[index]                      
-                            fetch_indices_product = distiller_with_holes(i, query_result_next,fetch_indices_product_orig, all_size_sieved_times_pre, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)
+                            time_data = size_sieved_df[index]                      
+                            fetch_indices_product = modify_fetch_indices(i, query_result_next,fetch_indices_product_orig, size_sieved_df, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)
                             break
 
 
                         elif 'EIT' in BaseClass.base_full:
                             time_data = product_results[0,:][int(index)]['time']['start']
-                            fetch_indices_product = distiller_with_holes(i, query_result_next,fetch_indices_product_orig, all_size_sieved_times_pre, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)
+                            fetch_indices_product = modify_fetch_indices(i, query_result_next,fetch_indices_product_orig, size_sieved_df, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)
                             break                            
                             
                         elif 'LASCO' in BaseClass.base_full:
                             if (not BaseClass.planet_comet_transient_filter(data_product)): #if line list empty then can use LASCO image.
                                 time_data = product_results[0,:][int(index)]['time']['start']
-                                fetch_indices_product = distiller_with_holes(i, query_result_next,fetch_indices_product_orig, all_size_sieved_times_pre, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)
+                                fetch_indices_product = modify_fetch_indices(i, query_result_next,fetch_indices_product_orig, size_sieved_df, ind, index,time_window, all_time_window_sieved_times_product_times, all_time_window_sieved_times_product_times_inds_list, time_data,image_size_output, reduced_product_data, header_next_good, home_dir, BaseClass)
                                 break                                                      
                     
                             elif (BaseClass.planet_comet_transient_filter(data_product)): #if line list not empty then can't use LASCO image.                    
@@ -700,7 +808,7 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
                     elif holes(query_result_next[0],BaseClass): #so if True, if there are holes
                         
                         if BaseClass.class_type == 'SDO_MDI':
-                            time_data = all_size_sieved_times_pre[index]                        
+                            time_data = size_sieved_df[index]                        
                             hole_loc = product_results.data.record[index].split('{')[0]                     
                         
                         else:
@@ -725,8 +833,8 @@ def product_distiller(fetch_indices_product_orig, all_size_sieved_times_pre, ind
     
     all_time_window_sieved_times_product_times_modified = all_time_window_sieved_times_product_times
 
-    return all_time_window_sieved_times_product_times_modified, holes_product_list, transients_product_list, blobs_product_list, unreadable_file_ids_product_list 
-
+    return all_time_window_sieved_times_product_times_modified, holes_product_list, transients_product_list, unreadable_file_ids_product_list 
+"""
 
 """
 The times corresponding to all fits files that passed all tests are written to csv files.
