@@ -12,13 +12,13 @@ import Mission_utility.__init__ as ipy
 import Mission_utility.sdo_mdi as sdo
 import Mission_utility.soho_other as soho
 
-date_start =  '2002-04-01'#'2002-04-01' #'1999-04-04' # '2010-10-01'
-date_finish = '2002-04-07'#'2002-04-07' #'1999-04-09' # '2010-10-05'
+date_start =  '2010-10-01'#'2002-04-01' #'1999-04-04' # '2010-10-01'
+date_finish = '2010-10-05'#'2002-04-07' #'1999-04-09' # '2010-10-05'
 image_size_output = 128
 time_window = 6
 flag = 'subsample'
 home_dir = '/Users/gohawks/Desktop/soho-ml-data/soho-ml-data-ready-martinkus/'
-bases = 'MDI_96m' #,LASCO_C3'#MDI_96m #AIA #HMI #'EIT195'
+bases = 'AIA1600' #,LASCO_C3'#MDI_96m #AIA #HMI #'EIT195'
 fits_headers = 'N'
 lev1_LASCO = 'Y' #CANNOT USE 'N' UNTIL UNIT CONVERSION SORTED OUT
 email = 'charlotte.martinkus@noaa.gov'
@@ -84,42 +84,42 @@ for base in tqdm(base_list):
         
         
         prev_time, time_range_modified = ipy.prev_time_resumer(home_dir, time_range, date_time_end, BaseClass) #time_range_modified.next() is the workshorse that advances time at the end of the time for-loop
-        for t_value in tqdm(np.arange(num_loops)): #this is the main workhorse loop of the program
-            print('t_value:', t_value)
-            print('prev_time:', prev_time)
+        #for t_value in tqdm(np.arange(num_loops)): #this is the main workhorse loop of the program
+            #print('t_value:', t_value)
+            #print('prev_time:', prev_time)
                 
-            if time_range_modified.end > date_time_end:
-                time_range_modified = TimeRange(time_range_modified.start, date_time_end) 
-                
-            product_results, client = BaseClass.product_search(time_range_modified, client)
+        if time_range_modified.end > date_time_end:
+            time_range_modified = TimeRange(time_range_modified.start, date_time_end) 
             
-            if BaseClass.class_type == 'SDO_MDI':
-                client_export_failed = product_results.has_failed()
-                
-                if client_export_failed == True:
-                    product_results_number = 0
-                
-                elif client_export_failed == False:
-                    product_results_number = product_results.data.count()['record'] 
+        product_results, client = BaseClass.product_search(time_range_modified, client)
+        
+        if BaseClass.class_type == 'SDO_MDI':
+            client_export_failed = product_results.has_failed()
             
-            else:
-                product_results_number = product_results.file_num
-                client_export_failed = False
+            if client_export_failed == True:
+                product_results_number = 0
+            
+            elif client_export_failed == False:
+                product_results_number = product_results.data.count()['record'] 
+        
+        else:
+            product_results_number = product_results.file_num
+            client_export_failed = False
+            
+        if (product_results_number != 0) and (client_export_failed == False): #product_results.has_failed()
+            ind = BaseClass.index_of_sizes(product_results) 
+            size_sieved_df, fetch_indices_product_orig = ipy.fetch_indices(ind,product_results,time_window, prev_time, BaseClass)
+            if len(fetch_indices_product_orig) != 0:
+            
+                size_sieved_df = ipy.product_distiller(fetch_indices_product_orig, size_sieved_df, date_time_end, product_results, look_ahead, time_window, url_prefix, flag, image_size_output, home_dir, email, client, BaseClass)
                 
-            if (product_results_number != 0) and (client_export_failed == False): #product_results.has_failed()
-                ind = BaseClass.index_of_sizes(product_results) 
-                size_sieved_df, fetch_indices_product_orig = ipy.fetch_indices(ind,product_results,time_window, prev_time, BaseClass)
-                if len(fetch_indices_product_orig) != 0:
-                
-                    size_sieved_df = ipy.product_distiller(fetch_indices_product_orig, size_sieved_df, date_time_end, product_results, look_ahead, time_window, url_prefix, flag, image_size_output, home_dir, email, client, BaseClass)
-                    
-                    all_time_window_sieved_times_sorted = np.unique(list(size_sieved_df['time_at_ind']))
-                                
-                    prev_time = [] #reset to empty list
-                    if len(all_time_window_sieved_times_sorted) != 0:
-                        prev_time.append(all_time_window_sieved_times_sorted[-1]) #append the last good time entry from the previous loop
+                all_time_window_sieved_times_sorted = np.unique(list(size_sieved_df['time_at_ind']))
                             
-                    size_sieved_df.to_csv(f'{home_dir}{date_start}_to_{date_finish}_{BaseClass.base_full}_times_{flag}_{time_window}_LASCOlev1-{BaseClass.lev1_lasco}_{BaseClass.mission}_{image_size_output}_{t_value}.csv')
+                prev_time = [] #reset to empty list
+                if len(all_time_window_sieved_times_sorted) != 0:
+                    prev_time.append(all_time_window_sieved_times_sorted[-1]) #append the last good time entry from the previous loop
+                t_value = 99       
+                size_sieved_df.to_csv(f'{home_dir}{date_start}_to_{date_finish}_{BaseClass.base_full}_times_{flag}_{time_window}_LASCOlev1-{BaseClass.lev1_lasco}_{BaseClass.mission}_{image_size_output}_{t_value}.csv')
                     
                     #ipy.csv_writer(home_dir, date_start, date_finish, flag, time_window, image_size_output, all_time_window_sieved_times_sorted, BaseClass)
                 
