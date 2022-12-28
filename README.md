@@ -40,7 +40,6 @@ Mission\_Data\_Gen experiment parameters:
 | --fits_headers       | Include header metadata in individual FITS files? Y/y or N/n. Applies primarily to MDI and HMI data from JSOC. Required argument. Faster download without header metadata. | 
 | --lev1_LASCO		   | Whether to use level 1 LASCO C2 and C3? Y/y or N/n. If no, then level 0.5 LASCO will be used. Required argument. |
 | --email 		   | User's email. Required by DRMS for the JSOC Client in order to have DRMS obtain the calibrated MDI products and all SDO mission products. |
-| --mission 		   | Choose from 'SOHO' or 'SDO'. |
 
 __Note:__ 
 ************
@@ -58,12 +57,12 @@ Example usages:
 
 ```python
 1. python nohup Mission_Data_Gen.py --products='EIT195, MDI_96m, LASCO_C3' --date_start='1996-01-01' --date_finish='2011-05-01' --image_size_output=128 --time_window=6
---flag=subsample --home_dir=/home/USER/ --fits_headers=N --lev1_LASCO=N --email=USER@Domain --mission=SOHO > LOG.log
+--flag=subsample --home_dir=/home/USER/ --fits_headers=N --lev1_LASCO=N --email=USER@Domain > LOG.log
 ```
 
 ```python
 2. python nohup Mission_Data_Gen.py --products='MDI_96m' --date_start='1999-04-04' --date_finish='1999-04-06' --image_size_output=128 --time_window=6
---flag=subsample --home_dir=/home/USER/ --fits_headers=N --lev1_LASCO=N --email=USER@Domain --mission=SOHO > LOG.log
+--flag=subsample --home_dir=/home/USER/ --fits_headers=N --lev1_LASCO=N --email=USER@Domain > LOG.log
 ```
 
 ### Output

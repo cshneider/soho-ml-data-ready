@@ -139,7 +139,32 @@ for base in tqdm(base_list):
  
     
  
+# if __name__ == '__main__':
+#     import argparse
+#     parser_args = argparse.ArgumentParser(description='Mission ML Data experiment parameters')
+#     parser_args.add_argument('--date_start', metavar='time', required=True, help='yyyy-mm-dd, 1996-01-01 is earliest start', type = str)
+#     parser_args.add_argument('--date_finish', metavar='time', required=True, help='yyyy-mm-dd, 2011-05-01 is recommended latest finish for SOHO mission, select a max range of 2 months', type = str)
+#     parser_args.add_argument('--image_size_output', metavar='image size', required=True, help='e.g., 128', type = int)
+#     parser_args.add_argument('--time_window', metavar='time', required=True, help='time step in hours', type = int)
+#     parser_args.add_argument('--flag', metavar='resize strategy', required=True, help='choose from either "subsample", "interp", "minpool", or "maxpool" ', type = str)
+#     parser_args.add_argument('--home_dir', metavar='home directory', required=True, help='str, e.g., "/home/user/Documents/", need "/" in the end', type = str)
+#     parser_args.add_argument('--products', metavar='product types', required=True, help='str, Enter all the following or a subset thereof, in any order, seperated by commas: for the SOHO mission: "EIT195, MDI_96m, LASCO_C2, LASCO_C3, EIT171, EIT304, EIT284" and for the SDO mission: "HMI_720s, AIA94, AIA131, AIA171, AIA193, AIA211, AIA304, AIA335, AIA1600, AIA1700, AIA4500"', type = str)
+#     parser_args.add_argument('--fits_headers', metavar='FITS header metadata',required=True, help='Include header metadata in individual FITS files? Y/y or N/n', type = str)
+#     parser_args.add_argument('--lev1_LASCO', metavar='level 1.0 or level 0.5 from SDAC', required=True, help='If want level-1 LASCO C2 and C3 images? Y/y or N/n', type = str)
+#     parser_args.add_argument('--email', metavar='email address of user', required=True, help='Required to obtain calibrated MDI images from JSOC', type = str)
     
+#     args = parser_args.parse_args()
+#     main(
+#         date_start = args.date_start,
+#         date_finish = args.date_finish,
+#         image_size_output = args.image_size_output,
+#         time_window = args.time_window,
+#         flag = args.flag,
+#         home_dir = args.home_dir,
+#         bases = args.products,
+#         fits_headers = args.fits_headers,
+#         lev1_LASCO = args.lev1_LASCO,
+#         email = args.email)      
  
     
  
@@ -148,4 +173,4 @@ for base in tqdm(base_list):
     
  
     
-#main(date_start, date_finish, image_size_output, time_window, flag, home_dir, bases, fits_headers, lev1_LASCO, email, mission)
+
