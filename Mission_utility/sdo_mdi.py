@@ -1,15 +1,13 @@
 import numpy as np
-import drms
-from sunpy.net import Fido, attrs as a #from sunpy.net.vso import attrs as avso
 from sunpy.time import TimeRange
-import astropy.units as u
-from astropy.io import fits
-from astropy.io.fits import Header
-from datetime import datetime, date, time, timedelta
-import shlex, subprocess
-import drms
+from datetime import time, timedelta
 
-
+"""
+Several functions are dependent on the base product and/or mission, and this  class
+is meant to organize and simplify those functions. This class is for SDO products,
+in addition to MDI. All base-specific properties and functions are defined in this
+class file. 
+"""
 class SDO_MDI:
     
     #static attributes
@@ -30,7 +28,12 @@ class SDO_MDI:
         self.time_window = time_window
         
     
-    #dictionaries for various scenarios
+    #dictionary for various scenarios
+    
+    """
+    Uses base/product input information to assign any necessary properties that will
+    be used by future functions.
+    """
     def set_base_dictionary(self):
         if 'MDI' in self.base_full:
             self.base = 'MDI'
@@ -54,6 +57,11 @@ class SDO_MDI:
         
         
     #class methods
+    
+    """
+    Base-specific helper function for holes(), returns True or False depending on if file has
+    missing pixel data.
+    """
     def are_holes(self, data, x_coord, filename, rsquared, blank_val, missing_vals):
         if any([x in filename for x in self.matches_MDI_HMI_AIA]):
             rad1 = float(x_coord)

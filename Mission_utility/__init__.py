@@ -1,40 +1,24 @@
 import numpy as np
-
 import os
 from os import listdir
 from os.path import isfile, join
-
-import shlex, subprocess
-
 from skimage.transform import rescale
 from skimage.measure import block_reduce
-
 from dateutil import parser
-from datetime import datetime, date, time, timedelta
-import time
-
+from datetime import timedelta
 import drms
-from sunpy.net import Fido, attrs as a #from sunpy.net.vso import attrs as avso
 from sunpy.time import TimeRange
-
-import astropy.units as u
 from astropy.io import fits
-from astropy.io.fits import Header
-
 import h5py
-
 import csv
-
-
 import json
-
 from tqdm import tqdm
-
 import pandas as pd
 
-import Mission_utility.sdo_mdi as sdo
-import Mission_utility.soho_other as soho
 
+"""
+Exports clients for specific time range. 
+"""
 def product_search(time_range, client, time_window):
     ts = '_'.join(str(time_range.start).split(' '))+'_TAI'
     tf = '_'.join(str(time_range.end).split(' '))+'_TAI'
@@ -43,12 +27,6 @@ def product_search(time_range, client, time_window):
     product_results = client.export(f'mdi.fd_M_96m_lev182[{ts}-{tf}]')
     
     return product_results, client
-
-
-
-
-
-
 
 
 """
@@ -412,41 +390,22 @@ def fetch_indices(ind,product_results,time_window,prev_time, BaseClass):
     size_sieved_df = pd.DataFrame({'orig_ind': ind, 
                                 'time_at_ind': all_size_sieved_times_pre_list,
                                 'is_good': [0]*len(all_size_sieved_times_pre_list),
-                                'is_hole': [0]*len(all_size_sieved_times_pre_list),
-                                'is_transient': [0]*len(all_size_sieved_times_pre_list),
+                                'has_hole': [0]*len(all_size_sieved_times_pre_list),
+                                'has_transient': [0]*len(all_size_sieved_times_pre_list),
                                 'is_unreadable': [0]*len(all_size_sieved_times_pre_list)
                                 })
     
     return size_sieved_df, fetch_indices_product
 
 
-def modify_fetch_indices(fetch_indices_product_orig, size_sieved_df, time_window, time_data):
-    indiv_ind_modified_list = []
-    localized_time_range = TimeRange(str(time_data),timedelta(hours=time_window)).next()
-    for tval in list(size_sieved_df['time_at_ind']):
-        if parser.parse(tval) < localized_time_range.start:
-            continue 
-        else:
-            indiv_ind_modified_new = size_sieved_df[size_sieved_df['time_at_ind']==tval]['orig_ind'].values[0]
-            indiv_ind_modified_list.append(indiv_ind_modified_new)
-            if tval not in localized_time_range:                              
-                next_orig_index = np.where(np.array(fetch_indices_product_orig) == np.array(indiv_ind_modified_new))[0]
-                if len(next_orig_index) != 0:
-                    indiv_ind_modified_new = fetch_indices_product_orig[next_orig_index[0]]
-                    tval = size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind_modified_new]['time_at_ind'].values[0]
-            localized_time_range = TimeRange(str(tval),timedelta(hours=time_window)).next()
-    return list(indiv_ind_modified_list) 
-
-
+"""
+Helper function for product_distiller(). If the previously investigated product had
+no noles or transient planets, product_distiller() will use this function to find
+the next viable size-sieved product to investigate.
+"""
 def get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind, possible_times_mod):
     localized_time_range = TimeRange(str(time_data),timedelta(hours=time_window)).next()
     fetch_inds_to_try_list = []
-    # if parser.parse(possible_times[-1]) <= localized_time_range.start:
-    #     print(possible_times_mod)
-    #     print(possible_times[-1])
-    #     print(localized_time_range.start)
-    #     indiv_ind = -1
-    #else:
     indiv_ind = -1
     for tval in possible_times_mod: #find next time to test with user specified time window
         if parser.parse(tval) < localized_time_range.start:
@@ -458,6 +417,20 @@ def get_next_good_time(size_sieved_df, possible_times, time_data, time_window, i
     
     return time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod
 
+
+"""
+Helper function for product_distiller(). If the previously investigated product had 
+a hole or transient planet, product_distiller() will use this function to find the 
+next viable size-sieved product to investigate. This function will see if any other
+size-sieved products are close in time to the product product_distiller() just discovered
+had a hole/transient planet. Any size-sieved products found within that local time window
+will be added to the fetch_inds_to_try_list and fed back to the product_distiller()
+to investigate. The first good product in the list will be selected and the 
+fetch_inds_to_try_list will be reset to [] and the get_next_good_time() helper function
+will be used to find the next size-sieved product to investigate. If a product in
+fetch_inds_to_try_list has a hole, this function will go to the next product in the
+list and feed that product to the product_distiller().
+"""
 def get_next_good_time_if_bad(fetch_inds_to_try_list, size_sieved_df, time_data, time_window, look_ahead, possible_times, indiv_ind, possible_times_mod):
     if len(fetch_inds_to_try_list) > 1: #if trying to find product within zoomed time window
             fetch_inds_to_try_list.pop(0)
@@ -481,6 +454,18 @@ def get_next_good_time_if_bad(fetch_inds_to_try_list, size_sieved_df, time_data,
 
     return time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod             
 
+
+"""
+Loops through all size-sieved products to find products within the user-specified 
+time window that are not missing pixels. It will search through eligible size-sieved
+products until all products have been exhausted. As it loops through products, 
+products are labeled in the dataframe. If a product has a hole, for examplee, it 
+is given a value of 1 in the has_hole column. For the size_sieved_df, a value of
+0 represents False and 1 represents True. Once a product from the size-sieved product
+list has been investigated, product_distiller() then finds the next viable product
+within the time window using the get_next_good_time_if_bad() or get_next_good_time()
+helper functions.
+"""
 def product_distiller(fetch_indices_product_orig, size_sieved_df, date_time_end, product_results, look_ahead, time_window, url_prefix, flag, image_size_output, home_dir, email, client, BaseClass):
     indiv_ind = fetch_indices_product_orig[0]
     time_data = size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind]['time_at_ind'].values[0]
@@ -508,12 +493,12 @@ def product_distiller(fetch_indices_product_orig, size_sieved_df, date_time_end,
                         size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['is_good']] = 1
                         time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod = get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind, possible_times_mod)
                     else:
-                        size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['is_transient']] = 1
+                        size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['has_transient']] = 1
                         os.remove(query_result[0]) #delete original downloaded file
                         time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod = get_next_good_time_if_bad(fetch_inds_to_try_list, size_sieved_df, time_data, time_window, look_ahead, possible_times, indiv_ind, possible_times_mod)
                 
             elif holes(query_result[0],BaseClass): #so if True, if there are holes
-                size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['is_hole']] = 1
+                size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['has_hole']] = 1
                 os.remove(query_result[0]) #delete original downloaded file
                 time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod = get_next_good_time_if_bad(fetch_inds_to_try_list, size_sieved_df, time_data, time_window, look_ahead, possible_times, indiv_ind, possible_times_mod)
     

@@ -1,15 +1,16 @@
 from skimage.transform import probabilistic_hough_line
-from skimage.feature import canny, blob_log
+from skimage.feature import canny
 import numpy as np
-import drms
 from sunpy.net import Fido, attrs as a #from sunpy.net.vso import attrs as avso
-from sunpy.time import TimeRange
 import astropy.units as u
-from astropy.io import fits
-from astropy.io.fits import Header
-from datetime import datetime, date, time, timedelta
-import shlex, subprocess
 
+
+"""
+Several functions are dependent on the base product and/or mission, and this  class
+is meant to organize and simplify those functions. This class is for SOHO products,
+excluding MDI. All base-specific properties and functions are defined in this
+class file. 
+"""
 class SOHO_no_MDI:
     
     #static attributes
@@ -26,7 +27,12 @@ class SOHO_no_MDI:
         self.lev1_lasco = lev1_lasco
         self.fits_headers = fits_headers
         
-    #dictionaries for various scenarios
+    #dictionary for various scenarios
+    
+    """
+    Uses base/product input information to assign any necessary properties that will
+    be used by future functions.
+    """
     def set_base_dictionary(self):
         if 'EIT' in self.base_full:
             self.base = 'EIT'
@@ -43,6 +49,11 @@ class SOHO_no_MDI:
         
     #class methods
     
+    
+    """
+    Base-specific helper function for holes(), returns True or False depending on if file has
+    missing pixel data.
+    """
     def are_holes(self, data, x_coord, filename, rsquared, blank_val, missing_vals):
         if 'LASCO_C3' in filename: 
             rad = 0.8*x_coord
@@ -96,23 +107,15 @@ class SOHO_no_MDI:
     
     
     """
-    Using Fido's returned query object that has now been sieved for proper data size in the case of EIT and LASCO products and user specified time window, the fileid is extracted from the accompanying Fido dictionary and wget is used to retrieve the product. Fido.fetch() method is used to obtain calibrated MDI products.
+    Using Fido's returned query object that has now been sieved for proper data 
+    size in the case of EIT and LASCO products and user specified time window, 
+    the fileid is extracted from the accompanying Fido dictionary and wget is 
+    used to retrieve the product. Fido.fetch() method is used to obtain calibrated 
+    MDI products.
     """
     def product_retriever(self, product_results,indiv_ind,url_prefix,home_dir,email,all_size_sieved_times_pre, client): 
 
         fileid = product_results[0,:][int(indiv_ind)]['fileid']
-        item_wget =  url_prefix + fileid
-        cmd = 'wget' + ' ' + '--retry-connrefused' + ' ' + '--waitretry=1' + ' ' + '--read-timeout=20' + ' ' + '--timeout=15' + ' ' + '-t' + ' ' + '0' + ' ' + '--continue' + ' ' + item_wget + ' ' + '-P' + ' ' + f'{home_dir}{self.base}_{self.mission}'     
-        args = shlex.split(cmd)    
-    
-        try: 
-            wget_output = subprocess.check_output(args, stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError as err:
-            print('Error output:\n', err.output) 
-            print('sleep for 15 minutes and then retry command')
-            time.sleep(900)
-            wget_output = subprocess.check_output(args, stderr=subprocess.STDOUT)
-    
         downloaded_fileid = fileid.split('/')[-1]
         query_result = [f'{home_dir}{self.base}_{self.mission}/{downloaded_fileid}']
     
@@ -121,9 +124,12 @@ class SOHO_no_MDI:
     
     
     """
-    Returns the indices corresponding to the proper sizes of each of the data products to ensure that they are single, two dimensional images.
-    Note: the original version of this code extracted data from VSO using a size unit of kibibyte (it appears that the website may as well). With the update,
-    it appears that Fido lists file size in mebibytes instead. Hence, the new version uses mebibytes instead of kibibytes. The Kibibyte values are listed
+    Returns the indices corresponding to the proper sizes of each of the data 
+    products to ensure that they are single, two dimensional images.
+    Note: the original version of this code extracted data from VSO using a s
+    ize unit of kibibyte (it appears that the website may as well). With the update,
+    it appears that Fido lists file size in mebibytes instead. Hence, the new 
+    version uses mebibytes instead of kibibytes. The Kibibyte values are listed
     for reference, or if looking for files through VSO directly.
     """
     def index_of_sizes(self, product_results): 
@@ -160,7 +166,8 @@ class SOHO_no_MDI:
     
    
     """
-    Planet and comet transients filter. Uses Probabilistic Hough Transform on Canny edge processed images to detect straight lines. 
+    Planet and comet transients filter. Uses Probabilistic Hough Transform on 
+    Canny edge processed images to detect straight lines. 
     The lines object returned by probabilistic_hough_line() is a list.
     Lines == False means can use image.
     """
