@@ -7,7 +7,7 @@ from time import process_time
 from tqdm import tqdm
 import drms
 
-import Mission_utility.__init__ as ipy
+import Mission_utility.data_gen_helper as ipy
 import Mission_utility.sdo_mdi as sdo
 import Mission_utility.soho_other as soho
 
