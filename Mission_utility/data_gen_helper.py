@@ -490,7 +490,6 @@ def product_distiller(fetch_indices_product_orig, size_sieved_df, date_time_end,
                 else:
                     #BaseClass.planet_comet_transient_filter(data_product) == False
                     lines = BaseClass.planet_comet_transient_filter(data_product)
-                    print(len(lines))
                     if ( len(lines) < 5): #if both line list and blob lost is empty then can use LASCO image.  
                         writefits(f'{BaseClass.base_full}_{BaseClass.mission}/{BaseClass.mission}_{BaseClass.base_full}_{time_data}_{image_size_output}', reduced_product_data, header_product, home_dir)
                         os.remove(query_result[0]) #delete original downloaded file

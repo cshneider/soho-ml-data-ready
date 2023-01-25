@@ -11,13 +11,13 @@ import Mission_utility.data_gen_helper as ipy
 import Mission_utility.sdo_mdi as sdo
 import Mission_utility.soho_other as soho
 
-date_start =  '2002-04-01'#'2002-04-01' #'1999-04-04' # '2010-10-01'
-date_finish = '2010-09-07'#'2002-04-07' #'1999-04-09' # '2010-10-05'
+date_start =  '2002-04-01'#'2002-04-01' #'1999-04-04' # '2010-10-01' '2005-12-01'
+date_finish = '2002-04-07'#'2002-04-07' #'1999-04-09' # '2010-10-05' '2005-12-07'
 image_size_output = 128
 time_window = 6
 flag = 'subsample'
 home_dir = '/Users/gohawks/Desktop/soho-ml-data/soho-ml-data-ready-martinkus/'
-bases = 'LASCO_C2' #,LASCO_C3'#MDI_96m #AIA #HMI #'EIT195'
+bases = 'MDI_96m' #,LASCO_C3'#MDI_96m #AIA #HMI #'EIT195'
 fits_headers = 'N'
 lev1_LASCO = 'Y' #CANNOT USE 'N' UNTIL UNIT CONVERSION SORTED OUT
 email = 'charlotte.martinkus@noaa.gov'
