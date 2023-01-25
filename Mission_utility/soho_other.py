@@ -3,6 +3,7 @@ from skimage.feature import canny
 import numpy as np
 from sunpy.net import Fido, attrs as a #from sunpy.net.vso import attrs as avso
 import astropy.units as u
+import shlex, subprocess, time
 
 
 """
@@ -116,8 +117,23 @@ class SOHO_no_MDI:
     def product_retriever(self, product_results,indiv_ind,url_prefix,home_dir,email,all_size_sieved_times_pre, client): 
 
         fileid = product_results[0,:][int(indiv_ind)]['fileid']
+        item_wget =  url_prefix + fileid
+        #item_wget = 'https://seal.nascom.nasa.gov/archive/soho/private/data/processed/eit/lz/2002/04/efz20020402.215520'
+        cmd = 'wget'+ ' ' + '--retry-connrefused' + ' ' + '--waitretry=1' + ' ' + '--read-timeout=20' + ' ' + '--timeout=15' + ' ' + '-t' + ' ' + '0' + ' ' + '--continue' + ' ' + item_wget + ' ' + '-P' + ' ' + f'{home_dir}{self.base_full}_{self.mission}'     
+        #cmd = 'wget'+ ' ' + '--retry-connrefused' + ' ' + '--waitretry=1' + ' ' + '--read-timeout=20' + ' ' + '--timeout=15' + ' ' + '-t' + ' ' + '0' + ' ' + '--continue' + ' ' + item_wget + ' ' + '-P' + ' ' + f'{home_dir}EIT195_SOHO'     
+
+        args = shlex.split(cmd)  
+        
+        try: 
+            wget_output = subprocess.check_output(args, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as err:
+            print('Error output:\n', err.output) 
+            print('sleep for 15 minutes and then retry command')
+            time.sleep(900)
+            wget_output = subprocess.check_output(args, stderr=subprocess.STDOUT)
+        
         downloaded_fileid = fileid.split('/')[-1]
-        query_result = [f'{home_dir}{self.base}_{self.mission}/{downloaded_fileid}']
+        query_result = [f'{home_dir}{self.base_full}_{self.mission}/{downloaded_fileid}']
     
         return query_result
     
@@ -183,12 +199,9 @@ class SOHO_no_MDI:
                         
         elif self.detector == 'C2':
             lines = probabilistic_hough_line(edges_data_product_log10, threshold=80, line_length=5, line_gap=0, seed=1, theta=np.array([-np.pi/2, np.pi/2]))
-        
-        if len(lines) > 5:
-            return True #can't use this image as straight lines detected
-        
-        elif not lines:
-            return False #can use this image as no straight lines detected
+
+        return lines
+
         
         
         

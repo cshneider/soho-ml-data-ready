@@ -11,13 +11,13 @@ import Mission_utility.data_gen_helper as ipy
 import Mission_utility.sdo_mdi as sdo
 import Mission_utility.soho_other as soho
 
-date_start =  '2010-10-01'#'2002-04-01' #'1999-04-04' # '2010-10-01'
-date_finish = '2010-10-05'#'2002-04-07' #'1999-04-09' # '2010-10-05'
+date_start =  '2002-04-01'#'2002-04-01' #'1999-04-04' # '2010-10-01'
+date_finish = '2010-09-07'#'2002-04-07' #'1999-04-09' # '2010-10-05'
 image_size_output = 128
 time_window = 6
 flag = 'subsample'
 home_dir = '/Users/gohawks/Desktop/soho-ml-data/soho-ml-data-ready-martinkus/'
-bases = 'AIA94' #,LASCO_C3'#MDI_96m #AIA #HMI #'EIT195'
+bases = 'LASCO_C2' #,LASCO_C3'#MDI_96m #AIA #HMI #'EIT195'
 fits_headers = 'N'
 lev1_LASCO = 'Y' #CANNOT USE 'N' UNTIL UNIT CONVERSION SORTED OUT
 email = 'charlotte.martinkus@noaa.gov'
@@ -42,7 +42,7 @@ print('image_size_output:', image_size_output)
 print('flag:', flag)
 print('home_dir:', home_dir)
 
-url_prefix = 'https://seal.nascom.nasa.gov/'
+url_prefix = 'https://seal.nascom.nasa.gov'
 print('url_prefix:', url_prefix)
 
 look_ahead = int(np.ceil(time_window*60/10.)) #should sufficiently cover all 7 products based on their cadence.

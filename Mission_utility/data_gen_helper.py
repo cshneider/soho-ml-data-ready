@@ -367,7 +367,8 @@ def fetch_indices(ind,product_results,time_window,prev_time, BaseClass):
     else:
         
         for value in ind:
-            all_size_sieved_times_pre_list.append(product_results[0,:][int(value)]['time']['start'])
+            #all_size_sieved_times_pre_list.append(product_results[0,:][int(value)]['time']['start'])
+            all_size_sieved_times_pre_list.append(product_results[0,:][int(value)]['Start Time'].strftime('%Y%m%d%H%M%S'))
             
     all_size_sieved_times = list(np.unique(all_size_sieved_times_pre_list))
     all_size_sieved_times_aug = prev_time + all_size_sieved_times #prev_time = [] for the very first loop and [last best time from previous loop] for subsequent loops.
@@ -438,7 +439,7 @@ def get_next_good_time_if_bad(fetch_inds_to_try_list, size_sieved_df, time_data,
             indiv_ind = size_sieved_df.loc[size_sieved_df['time_at_ind']==time_data]['orig_ind'].values[0]
         
     elif len(fetch_inds_to_try_list) == 1: #if already exhausted all options within zoomed time window, go to next time window
-        time_data, indiv_ind = get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind)
+        time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod = get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind, possible_times_mod)
     
     else: #see if any other products are within zoomed time window and can be used instead
         zoomed_time_range = TimeRange(str(time_data),timedelta(hours=time_window))
@@ -447,7 +448,7 @@ def get_next_good_time_if_bad(fetch_inds_to_try_list, size_sieved_df, time_data,
             if time_val in zoomed_time_range: #this is the next fitting time in the list, slightly less than 2hrs seperated theoretically
                 fetch_inds_to_try_list.append(time_val)
         if len(fetch_inds_to_try_list) == 0:
-            time_data, indiv_ind = get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind, possible_times_mod)
+            time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod = get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind, possible_times_mod)
         else:
             time_data = fetch_inds_to_try_list[0]
             indiv_ind = size_sieved_df.loc[size_sieved_df['time_at_ind']==time_data]['orig_ind'].values[0]
@@ -487,7 +488,10 @@ def product_distiller(fetch_indices_product_orig, size_sieved_df, date_time_end,
                     time_data, indiv_ind, fetch_inds_to_try_list, possible_times_mod = get_next_good_time(size_sieved_df, possible_times, time_data, time_window, indiv_ind, possible_times_mod)
                     
                 else:
-                    if (not BaseClass.planet_comet_transient_filter(data_product)): #if both line list and blob lost is empty then can use LASCO image.
+                    #BaseClass.planet_comet_transient_filter(data_product) == False
+                    lines = BaseClass.planet_comet_transient_filter(data_product)
+                    print(len(lines))
+                    if ( len(lines) < 5): #if both line list and blob lost is empty then can use LASCO image.  
                         writefits(f'{BaseClass.base_full}_{BaseClass.mission}/{BaseClass.mission}_{BaseClass.base_full}_{time_data}_{image_size_output}', reduced_product_data, header_product, home_dir)
                         os.remove(query_result[0]) #delete original downloaded file
                         size_sieved_df.loc[size_sieved_df['orig_ind']==indiv_ind, ['is_good']] = 1
