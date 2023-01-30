@@ -11,8 +11,8 @@ import Mission_utility.data_gen_helper as ipy
 import Mission_utility.sdo_mdi as sdo
 import Mission_utility.soho_other as soho
 
-date_start =  '2002-04-01'#'2002-04-01' #'1999-04-04' # '2010-10-01' '2005-12-01'
-date_finish = '2002-04-07'#'2002-04-07' #'1999-04-09' # '2010-10-05' '2005-12-07'
+date_start =  '2001-04-01'#'2002-04-01' #'1999-04-04' # '2010-10-01' '2005-12-01'
+date_finish = '2001-04-07'#'2002-04-07' #'1999-04-09' # '2010-10-05' '2005-12-07'
 image_size_output = 128
 time_window = 6
 flag = 'subsample'
@@ -85,7 +85,7 @@ for base in tqdm(base_list):
         prev_time, time_range_modified = ipy.prev_time_resumer(home_dir, time_range, date_time_end, BaseClass) #time_range_modified.next() is the workshorse that advances time at the end of the time for-loop
         for t_value in tqdm(np.arange(num_loops)): #this is the main workhorse loop of the program
             #print('t_value:', t_value)
-            #print('prev_time:', prev_time)
+            print('prev_time:', prev_time)
                 
             if time_range_modified.end > date_time_end:
                 time_range_modified = TimeRange(time_range_modified.start, date_time_end) 
@@ -107,7 +107,7 @@ for base in tqdm(base_list):
                 
             if (product_results_number != 0) and (client_export_failed == False): #product_results.has_failed()
                 ind = BaseClass.index_of_sizes(product_results) 
-                size_sieved_df, fetch_indices_product_orig = ipy.fetch_indices(ind,product_results,time_window, prev_time, BaseClass)
+                size_sieved_df, fetch_indices_product_orig = ipy.fetch_indices(ind,product_results,time_window, prev_time, time_range_modified, BaseClass)
                 if len(fetch_indices_product_orig) != 0:
                 
                     size_sieved_df = ipy.product_distiller(fetch_indices_product_orig, size_sieved_df, date_time_end, product_results, look_ahead, time_window, url_prefix, flag, image_size_output, home_dir, email, client, BaseClass)

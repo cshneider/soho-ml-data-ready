@@ -171,10 +171,10 @@ def prev_time_resumer(home_dir, time_range_orig, date_time_end, BaseClass):
     if len(data_files) != 0:
         prev_time_pre = data_files[-1]
         
-        if ('EIT' in str(prev_time_pre)) or ('AIA' in str(prev_time_pre)): 
-            prev_time = [prev_time_pre.split('_')[2]]
-        else:
+        if ('LASCO' in str(prev_time_pre)) or ('MDI' in str(prev_time_pre)): 
             prev_time = [prev_time_pre.split('_')[3]]
+        else:
+            prev_time = [prev_time_pre.split('_')[2]]
              
         time_orig_pre = str(time_range_orig.start)
         time_orig = ''.join(time_orig_pre.split(' ')[0].split('-'))
@@ -183,6 +183,7 @@ def prev_time_resumer(home_dir, time_range_orig, date_time_end, BaseClass):
             time_begin = prev_time[0]
             time_range = TimeRange(time_begin, date_time_end)
         else:
+            prev_time = []
             time_range = time_range_orig            
     
     elif len(data_files) == 0:
@@ -323,9 +324,11 @@ def data_cuber(home_dir, date_start, date_finish, flag, time_window, image_size_
     else:
         data_content_stack = [] 
                   
-    time_start_name_new, time_finish_name_new = data_name_selector(home_dir, date_start, date_finish, BaseClass)
+    #time_start_name_new, time_finish_name_new = data_name_selector(home_dir, date_start, date_finish, BaseClass)
         
-    data_cube = h5py.File(f'{home_dir}{time_start_name_new}_to_{time_finish_name_new}_{BaseClass.base_full}_{flag}_{time_window}_LASCOlev1-{BaseClass.lev1_lasco}_{BaseClass.mission}_{image_size_output}_metadata.h5', 'w')
+    #data_cube = h5py.File(f'{home_dir}{time_start_name_new}_to_{time_finish_name_new}_{BaseClass.base_full}_{flag}_{time_window}_LASCOlev1-{BaseClass.lev1_lasco}_{BaseClass.mission}_{image_size_output}_metadata.h5', 'w')
+    data_cube = h5py.File(f'{home_dir}{date_start}_to_{date_finish}_{BaseClass.base_full}_{flag}_{time_window}_LASCOlev1-{BaseClass.lev1_lasco}_{BaseClass.mission}_{image_size_output}_metadata.h5', 'w')
+
     ##########data_cube_group = data_cube.create_group(f'{base}_{mission}_{image_size_output}')
     data_cube.create_dataset(f'{BaseClass.base_full}_{BaseClass.mission}_{image_size_output}', data=data_content_stack, compression="gzip")
     
@@ -353,7 +356,7 @@ def data_cuber(home_dir, date_start, date_finish, flag, time_window, image_size_
 From the appropriate file size image indices, this function picks up those times and their corresponding indices that are seperated by the user defined time window. 
 The indices returned by this function will be used in the product object returned by Fido search.
 """
-def fetch_indices(ind,product_results,time_window,prev_time, BaseClass):
+def fetch_indices(ind,product_results,time_window,prev_time, time_range_modified, BaseClass):
     
     all_size_sieved_times_pre_list = [] #local list to populate at each loop
     all_time_window_sieved_times_product_times = []  #local list to populate at each loop
